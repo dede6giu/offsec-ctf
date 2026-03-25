@@ -1,11 +1,11 @@
 # [RootMe](https://tryhackme.com/room/rrootme)
 
-<figure><img src="assets/logo.png"></figure>
+<figure><img src="assets/logo.png" width="175" title="tryhackme.com - © TryHackMe"></figure>
 
 > A ctf for beginners, can you root me?
 > https://tryhackme.com/room/rrootme
 
-# Write up
+# Writeup
 
 ## **Task 1**: Deploy the machine
 
@@ -14,6 +14,8 @@ Click the button! It does it all! :3c
 ## **Task 2**: Reconnaissance
 
 First things first, with the machine deployed at `10.66.166.135` we do a quick ping and verify it all really is connected. Since we have no info on what ports are open and what else may lie within, a quick search with `nmap` is warranted.
+
+> `nmap` is a network scanner. It sends packages to ports and analyzes responses, returning open ports. 
 
 Running:
 ```bash
@@ -40,7 +42,9 @@ With this we already can solve some of the questions:
 - Q: What version of Apache is running? A: 2.4.41
 - Q: What service is running on port 22? A: ssh
 
-Moving on, since we found a `http` service at port `80`, we can put the machine ip at the search bar and check out what it got to offer... Nice website! Now, since there are no links around to click, we pull out the `gobuster` and start searching for them ourselves. Since Apache servers use `.php`, we'll search for them as well.
+Moving on, since we found a `http` service at port `80`, we can put the machine ip at the web browser search bar and check out what it got to offer... Nice website! Now, since there are no links around to click, we pull out the `gobuster` and start searching for them ourselves. Since Apache servers use `.php`, we'll search for them as well.
+
+> `gobuster` is a bruteforcer. Specifically, it searches for directories on web servers, using a specified wordlist as reference.
 
 Using the medium wordlist that comes with kali linux we run:
 ```bash
@@ -97,9 +101,14 @@ Incredibly so, it was actually uploaded. Be careful setting up extension blocker
 
 <figure><img src="assets/uploads-2.png"></figure>
 
+> A revshell (reverse shell, shell shovelling) is a program that redirects the i/o of a shell to another service so it can be remotely accessed.
 > By the way, this particular revshell is [PHP PentestMonkey](https://github.com/pentestmonkey/php-reverse-shell).
 
-With the reverse shell file properly planted on the servers, we set up `netcat` to listen on the same port as the revshell (`netcat -lvnp 1234`). Then, on the `/uploads` we try to execute the `.php`s we've sent over. None work except `.php5` (good riddance we sent every possible one!), and now `netcat` returns us with the shell connection.
+With the reverse shell file properly planted on the servers, we set up `netcat` to listen on the same port as the revshell (`netcat -lvnp 1234`). 
+
+> `netcat` is a networking utility for reading and writing to network connections. In this case, our reverse shell.
+
+Then, on the `/uploads` we try to execute the `.php`s we've sent over (as simple as clicking the files). None work except `.php5` (good riddance we sent every possible one!), and now `netcat` returns us with the shell connection.
 
 ```bash
 $ whoami
@@ -123,6 +132,8 @@ THM{y0u_g0t_a_sh3ll}
 ## **Task 4**: Privilege Escalation
 
 For escalating permissions, there are various methods, but one easy one is using files with `SUID` permissions. Of course, if we *aren't* already root, though a quick `sudo -S -l` reveals it's password protected. That said, if by some miracle we find an odd-one-out file it might be of incredible use (of course, the THM room also incentivizes us to do so).
+
+> Choosing `SUID` is great because these files are always run as the user that owns them. As such, we can search for files that `root` owns and try to remotely execute code.
 
 Using the command:
 ```bash
