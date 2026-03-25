@@ -103,7 +103,6 @@ Incredibly so, it was actually uploaded. Be careful setting up extension blocker
 
 <figure><img src="assets/uploads-2.png"></figure>
 
-> A revshell (reverse shell, shell shovelling) is a program that redirects the i/o of a shell to another service so it can be remotely accessed.
 > By the way, this particular revshell is [PHP PentestMonkey](https://github.com/pentestmonkey/php-reverse-shell).
 
 With the reverse shell file properly planted on the servers, we set up `netcat` to listen on the same port as the revshell (`netcat -lvnp 1234`). 
