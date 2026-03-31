@@ -4,7 +4,7 @@
 
 > Lore exerpt
 
-Original Capture The Flag on [host](((link))), made by ((author)).
+Original Capture The Flag available on [host](((link))), made by ((author)).
 
 Dificulty: `((dificulty))`
 

