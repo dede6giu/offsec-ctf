@@ -10,6 +10,7 @@
 Capture The Flag original disponível em [((host))](((link))), feito por ((author)).
 
 Dificuldade: `((dificulty))`
+
 Resolvido em: `((solving date))`
 
 # Conteúdos

@@ -7,6 +7,7 @@
 Original Capture The Flag on [host](((link))), made by ((author)).
 
 Dificulty: `((dificulty))`
+
 Solved in: `((solving date))`
 
 # Table of Contents
