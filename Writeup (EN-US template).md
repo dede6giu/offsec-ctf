@@ -25,3 +25,4 @@ Solved in: `((solving date))`
 [^robotstxt]: https://en.wikipedia.org/wiki/Robots.txt
 [^nc]: https://nc110.sourceforge.io/
 [^rv]: https://en.wikipedia.org/wiki/Shell_shoveling
+[^hydra]: https://github.com/vanhauser-thc/thc-hydra

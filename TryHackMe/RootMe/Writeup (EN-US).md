@@ -5,6 +5,10 @@
 > A ctf for beginners, can you root me?
 > https://tryhackme.com/room/rrootme
 
+Dificulty: `Easy`
+
+Resolvido em: `2026/03/23`
+
 # Writeup
 
 ## **Task 1**: Deploy the machine
