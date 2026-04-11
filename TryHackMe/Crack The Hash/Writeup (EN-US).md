@@ -22,10 +22,10 @@ Solved in: `2026/04/11`
       + [Hash 1-3](#hash-1-3)
       + [Hash 1-4](#hash-1-4)
       + [Hash 1-5](#hash-1-5)
-      + [Hash ](#hash)
+      + [Hash 2-1](#hash-2-1)
       + [Hash 2-2](#hash-2-2)
       + [Hash 2-3](#hash-2-3)
-      + [Hash ](#hash-1)
+      + [Hash 2-4](#hash-2-4)
 
 # Writeup
 
@@ -198,7 +198,7 @@ Trying it as `MD5`, the list exhausted, and so it did with `MD4`. I tried exchan
 
 Found the password, <PASS_1-5>.
 
-### Hash 
+### Hash 2-1
 
 Given hash: `F09EDCB1FCEFC6DFB23DC3505A882655FF77375ED8AA2D1C13F640FCCC2D0C85`
 
@@ -324,7 +324,7 @@ Stopped: Sat Apr 11 13:49:35 2026
 
 Found the password, <PASS_2-3>. Notably, this was the longest time of thhe challenge for a crack.
 
-### Hash 
+### Hash 2-4
 
 Given hash: `e5d8870e5bdd26602cab8dbe07a942c8669e56d6`
 Given salt: `tryhackme`
