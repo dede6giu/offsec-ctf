@@ -29,3 +29,8 @@ Resolvido em: `((solving date))`
 [^nc]: https://nc110.sourceforge.io/
 [^rv]: https://en.wikipedia.org/wiki/Shell_shoveling
 [^hydra]: https://github.com/vanhauser-thc/thc-hydra
+[^hashid]: https://psypanda.github.io/hashID/
+[^hashcat]: https://hashcat.net/hashcat/
+[^rockme]: https://weakpass.com/wordlists/rockyou.txt
+[^gzip]: https://www.gzip.org/
+[^awk]: https://en.wikipedia.org/wiki/AWK

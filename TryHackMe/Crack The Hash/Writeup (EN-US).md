@@ -1,53 +1,50 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Crack the hash](https://tryhackme.com/room/crackthehash)
 
 <a href="https://tryhackme.com/room/crackthehash"><figure><img src="./assets/logo.jpeg" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Cracking hashes challenges
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/crackthehash), feito por [ben](https://tryhackme.com/p/ben).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/crackthehash), made by [ben](https://tryhackme.com/p/ben).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/04/11`
+Solved in: `2026/04/11`
 
-# Conteúdos
+# Table of Contents
 
 - [Crack the hash](#crack-the-hash)
-- [Conteúdos](#conteúdos)
+- [Table of Contents](#table-of-contents)
 - [Writeup](#writeup)
-   * [Sumário](#sumário)
+   * [Summary](#summary)
    * [Hash Cracking](#hash-cracking)
       + [Hash 1-1](#hash-1-1)
       + [Hash 1-2](#hash-1-2)
       + [Hash 1-3](#hash-1-3)
       + [Hash 1-4](#hash-1-4)
       + [Hash 1-5](#hash-1-5)
-      + [Hash 2-1](#hash-2-1)
+      + [Hash ](#hash)
       + [Hash 2-2](#hash-2-2)
       + [Hash 2-3](#hash-2-3)
-      + [Hash 2-4](#hash-2-4)
+      + [Hash ](#hash-1)
 
 # Writeup
 
-## Sumário
+## Summary
 
-O Crack the hash consiste em, como no título, quebrar hashes disponibilizados.
+Crack the hash consists in, as it says in the title, break the available hashes.
 
 ## Hash Cracking
 
-Para este CTF, o objetivo consiste solenemente no processo de quebrar hashes, sem máquinas virtuais envolvidas ou outros campos de pentesting. Cada tarefa é obter o valor original do hash fornecido.
+For this CTF, the objective consists solely on breaking hashes, without virtual machines or other pentest subjects. Each task is "obtain the original value from the hash".
 
-Em geral, o processo de solução será o mesmo para todas as tarefas (exceto quando especificado): primeiro usa-se `hashid`[^hashid] ou [hash-analyzer](https://www.tunnelsup.com/hash-analyzer/) para identificar qual o formato da hash, e depois usar uma ferramenta como `hashcat`[^hashcat] ou [crackstation](https://crackstation.net/) para quebrar o hash.
+In general, the solution steps will be the same for all tasks (except where specified): first I'll use `hashid`[^hashid] or [hash-analyzer](https://www.tunnelsup.com/hash-analyzer/) to identify what hash is it, then use `hashcat`[^hashcat] or [crackstation](https://crackstation.net/) for actually breaking the hash.
 
-O comando que usarei com `hashcat` usa a wordlist rockme[^rockme]:
+The command I'll use with `hashcat` uses the rockme[^rockme] wordlist:
 - `hashcat -a 0 -m <hashtype> '<hash>' /usr/share/wordlists/rockyou.txt.gz`
 
 ### Hash 1-1
 
-Hash fornecido: `48bb6e862e54f2a795ffc4e541caed4d`
+Given hash: ``
 
 ```bash
 $ hashid 48bb6e862e54f2a795ffc4e541caed4d
@@ -59,7 +56,7 @@ Analyzing '48bb6e862e54f2a795ffc4e541caed4d'
 # ...
 ```
 
-Testando com `MD5`:
+Trying it out with `MD5`:
 
 ```bash
 $ hashcat -a 0 -m 0 48bb6e862e54f2a795ffc4e541caed4d /usr/share/wordlists/rockyou.txt.gz
@@ -75,11 +72,11 @@ Started: Sat Apr 11 11:17:33 2026
 Stopped: Sat Apr 11 11:17:55 2026
 ```
 
-Obtive a primeira senha, <PASS_1-1>.
+Found the password, <PASS_1-1>.
 
 ### Hash 1-2
 
-Hash fornecido: `CBFDAC6008F9CAB4083784CBD1874F76618D2A97`
+Given hash: `CBFDAC6008F9CAB4083784CBD1874F76618D2A97`
 
 ```bash
 $ hashid CBFDAC6008F9CAB4083784CBD1874F76618D2A97
@@ -89,7 +86,7 @@ Analyzing 'CBFDAC6008F9CAB4083784CBD1874F76618D2A97'
 # ...
 ```
 
-Testando com `SHA1`:
+Trying it out with `SHA1`:
 
 ```bash
 $ hashcat -a 0 -m 100 CBFDAC6008F9CAB4083784CBD1874F76618D2A97 /usr/share/wordlists/rockyou.txt.gz 
@@ -105,11 +102,11 @@ Started: Sat Apr 11 11:27:45 2026
 Stopped: Sat Apr 11 11:27:56 2026
 ```
 
-Obtive a segunda senha, <PASS_1-2>.
+Found the password, <PASS_1-2>.
 
 ### Hash 1-3
 
-Hash fornecido: `1C8BFE8F801D79745C4631D09FFF36C82AA37FC4CCE4FC946683D7B336B63032`
+Given hash: `1C8BFE8F801D79745C4631D09FFF36C82AA37FC4CCE4FC946683D7B336B63032`
 
 ```bash
 $ hashid 1C8BFE8F801D79745C4631D09FFF36C82AA37FC4CCE4FC946683D7B336B63032
@@ -123,7 +120,7 @@ Analyzing '1C8BFE8F801D79745C4631D09FFF36C82AA37FC4CCE4FC946683D7B336B63032'
 # ...
 ```
 
-Testando com `SHA2-256`:
+Trying it out with `SHA2-256`:
 
 ```bash
 $ hashcat -a 0 -m 1400 1C8BFE8F801D79745C4631D09FFF36C82AA37FC4CCE4FC946683D7B336B63032 /usr/share/wordlists/rockyou.txt.gz
@@ -139,12 +136,11 @@ Started: Sat Apr 11 11:33:23 2026
 Stopped: Sat Apr 11 11:33:35 2026
 ```
 
-Obtive a terceira senha, <PASS_1-3>.
-
+Found the password, <PASS_1-3>.
 
 ### Hash 1-4
 
-Hash fornecido: `$2y$12$Dwt1BZj6pcyc3Dy1FWZ5ieeUznr71EeNkJkUlypTsgbX1H68wsRom`
+Given hash: `$2y$12$Dwt1BZj6pcyc3Dy1FWZ5ieeUznr71EeNkJkUlypTsgbX1H68wsRom`
 
 ```bash
 $ hashid '$2y$12$Dwt1BZj6pcyc3Dy1FWZ5ieeUznr71EeNkJkUlypTsgbX1H68wsRom'
@@ -154,18 +150,18 @@ Analyzing '$2y$12$Dwt1BZj6pcyc3Dy1FWZ5ieeUznr71EeNkJkUlypTsgbX1H68wsRom'
 [+] bcrypt
 ```
 
-Quando fui testar com `bcrypt` / `Blowfish`, o tempo de previsão foi dois dias de conclusão, uma vez que tal hash é mais lento de calcular. Decidi, então, usar outras informações para restringir a wordlist.
+When I tried cracking the `bcrypt` / `Blowfish` hash, the estimated time was two days, since it is a slower-to-crack hash. I decided, so, to use other informations to restrict the wordlist.
 
-A maior restrição é, então, a quantidade de caracteres na senha. O campo de texto do Try Hack Me fornece que a senha tem 4 caracteres, então restringi o tamanho da rockme[^rockme] para apenas senhas que possuem 4 caracteres.
+The biggest restriction available is, then, the amount of characters in the password. The text field on Try Hack Me provides that it has 4 characters, so I filtered rockme[^rockme].
 
-Para isso, basta (depois de descomprimir o arquivo `rockyou.txt.gz` com `gzip`[^gzip]) filtrar palavras com tamanho 4 usando o comando `awk`[^awk]:
+For that, all I need is to (after decompressing `rockyou.txt.gz` with `gzip`[^gzip]) filter words with size 4 using `awk`[^awk]:
 
 ```bash
 $ gzip -d rockyou.txt.gz 
 $ awk 'length($0) == 4' rockyou.txt > pass4.txt
 ```
 
-Agora, com essa nova lista de valores, o resultado sai rapidamente:
+Now, with the new wordlist, the result quickly comes:
 
 ```bash
 $ hashcat -a 0 -m 3200 '$2y$12$Dwt1BZj6pcyc3Dy1FWZ5ieeUznr71EeNkJkUlypTsgbX1H68wsRom' ~/Desktop/pass4.txt
@@ -181,12 +177,11 @@ Started: Sat Apr 11 12:20:14 2026
 Stopped: Sat Apr 11 12:20:31 2026
 ```
 
-Obtive a quarta senha, <PASS_1-4>.
-
+Found the password, <PASS_1-4>.
 
 ### Hash 1-5
 
-Hash fornecido: `279412f945939ba78ce0758d3fd83daa`
+Given hash: `279412f945939ba78ce0758d3fd83daa`
 
 ```bash
 Analyzing '279412f945939ba78ce0758d3fd83daa'
@@ -197,16 +192,15 @@ Analyzing '279412f945939ba78ce0758d3fd83daa'
 # ...
 ```
 
-Testando com `MD5`, o resultado exauriu, e também exauriu com `MD4`. Decidi trocar o `hashcat` por outra ferramenta, [crackstation](https://crackstation.net/), e o resultado saiu de imediato: 
+Trying it as `MD5`, the list exhausted, and so it did with `MD4`. I tried exchanging `hashcat` for another tool, [crackstation](https://crackstation.net/), and the result came quick:
 
 <figure><img src="./assets/crackstation.png" title="crackstation.net - AGPL-3.0"></figure>
 
-Obtive a quinta senha, <PASS_1-5>.
+Found the password, <PASS_1-5>.
 
+### Hash 
 
-### Hash 2-1
-
-Hash fornecido: `F09EDCB1FCEFC6DFB23DC3505A882655FF77375ED8AA2D1C13F640FCCC2D0C85`
+Given hash: `F09EDCB1FCEFC6DFB23DC3505A882655FF77375ED8AA2D1C13F640FCCC2D0C85`
 
 ```bash
 $ hashid F09EDCB1FCEFC6DFB23DC3505A882655FF77375ED8AA2D1C13F640FCCC2D0C85
@@ -221,7 +215,7 @@ Analyzing 'F09EDCB1FCEFC6DFB23DC3505A882655FF77375ED8AA2D1C13F640FCCC2D0C85'
 [+] Skein-512(256) 
 ```
 
-Testando com `SHA2-256`:
+Trying it out with `SHA2-256`:
 
 ```bash
 $ hashcat -a 0 -m 1400 'F09EDCB1FCEFC6DFB23DC3505A882655FF77375ED8AA2D1C13F640FCCC2D0C85'  /usr/share/wordlists/rockyou.txt.gz
@@ -237,12 +231,11 @@ Started: Sat Apr 11 13:18:22 2026
 Stopped: Sat Apr 11 13:18:24 2026
 ```
 
-Obtive a senha, <PASS_2-1>.
-
+Found the password, <PASS_2-1>.
 
 ### Hash 2-2
 
-Hash fornecido: `1DFECA0C002AE40B8619ECF94819CC1B`
+Given hash: `1DFECA0C002AE40B8619ECF94819CC1B`
 
 ```bash
 $ hashid 1DFECA0C002AE40B8619ECF94819CC1B                                
@@ -257,7 +250,7 @@ Analyzing '1DFECA0C002AE40B8619ECF94819CC1B'
 # ...
 ```
 
-Testando com `MD5`:
+Trying it out with `MD5`:
 
 ```bash
 $ hashcat -a 0 -m 0 '1DFECA0C002AE40B8619ECF94819CC1B'  /usr/share/wordlists/rockyou.txt.gz
@@ -271,7 +264,7 @@ Started: Sat Apr 11 13:21:34 2026
 Stopped: Sat Apr 11 13:21:38 2026
 ```
 
-Exausto. O resultado com `MD4` é semelhante:
+Exhausted. The result is similar with `MD4`:
 
 ```bash
 $ hashcat -a 0 -m 900 '1DFECA0C002AE40B8619ECF94819CC1B'  /usr/share/wordlists/rockyou.txt.gz
@@ -285,7 +278,7 @@ Started: Sat Apr 11 13:22:03 2026
 Stopped: Sat Apr 11 13:22:06 2026
 ```
 
-Mas ao tentar `NTLM`:
+But trying `NTLM`:
 
 ```bash
 $ hashcat -a 0 -m 1000 '1DFECA0C002AE40B8619ECF94819CC1B'  /usr/share/wordlists/rockyou.txt.gz
@@ -301,12 +294,11 @@ Started: Sat Apr 11 13:27:06 2026
 Stopped: Sat Apr 11 13:27:17 2026
 ```
 
-Obtive a senha, <PASS_2-2>.
-
+Found the password, <PASS_2-2>.
 
 ### Hash 2-3
 
-Hash fornecido: `$6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02.`
+Given hash: `$6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02.`
 
 ```bash
 $ hashid '$6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02.'
@@ -314,7 +306,7 @@ Analyzing '$6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/q
 [+] SHA-512 Crypt
 ```
 
-Como o único resultado é `sha512crypt`:
+Since the only result is `sha512crypt`:
 
 ```bash
 $ hashcat -a 0 -m 1800 '$6$aReallyHardSalt$6WKUTqzq.UQQmrm0p/T7MPpMbGNnzXPMAXi4bJMl9be.cfi3/qxIf.hsGpS41BqMhSrHVXgMpdjS6xeKZAs02.'  /usr/share/wordlists/rockyou.txt.gz
@@ -330,13 +322,12 @@ Started: Sat Apr 11 13:41:13 2026
 Stopped: Sat Apr 11 13:49:35 2026
 ```
 
-Obtive a senha, <PASS_2-3>. Notavelmente, de todos os hashes presentes nesta sala, esse foi o que demorou mais tempo para obter a solução.
+Found the password, <PASS_2-3>. Notably, this was the longest time of thhe challenge for a crack.
 
+### Hash 
 
-### Hash 2-4
-
-Hash fornecido: `e5d8870e5bdd26602cab8dbe07a942c8669e56d6`
-Salt fornecido: `tryhackme`
+Given hash: `e5d8870e5bdd26602cab8dbe07a942c8669e56d6`
+Given salt: `tryhackme`
 
 ```bash
 $ hashid e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme
@@ -346,9 +337,9 @@ Analyzing 'e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme'
 # ...
 ```
 
-O formato do hash realmente é semelhante ao `SHA-1`, contudo com o salt fornecido ainda é necessário descobrir qual tipo de salt foi utilizado. Decidi tentar todos os métodos disponíveis no `hashcat`, usando a hash `e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme`.
+The hash format really is similar to `SHA-1`, though since a salt is provided it's still needed to figure out which kind of salt was used. By trial and error, I attempted all available methods on `hashcat`, using `e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme` as the hash:
 
-Com `sha1($pass.$salt)`:
+Trying it out first with `sha1($pass.$salt)`:
 
 ```bash
 $ hashcat -a 0 -m 110 'e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme'  /usr/share/wordlists/rockyou.txt.gz 
@@ -362,7 +353,7 @@ Started: Sat Apr 11 13:55:35 2026
 Stopped: Sat Apr 11 13:55:47 2026
 ```
 
-Com `sha1($salt.$pass)`:
+With `sha1($salt.$pass)`:
 
 ```bash
 hashcat -a 0 -m 120 'e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme'  /usr/share/wordlists/rockyou.txt.gz 
@@ -376,7 +367,7 @@ Started: Sat Apr 11 14:00:29 2026
 Stopped: Sat Apr 11 14:00:41 2026
 ```
 
-Com `HMAC-SHA1 (key = $pass)`:
+With `HMAC-SHA1 (key = $pass)`:
 
 ```bash
 $ hashcat -a 0 -m 150 'e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme'  /usr/share/wordlists/rockyou.txt.gz 
@@ -390,7 +381,7 @@ Started: Sat Apr 11 14:01:40 2026
 Stopped: Sat Apr 11 14:01:54 2026
 ```
 
-E, finalmente, com `HMAC-SHA1 (key = $salt)`:
+And, finally, with `HMAC-SHA1 (key = $salt)`:
 
 ```bash
 $ hashcat -a 0 -m 160 'e5d8870e5bdd26602cab8dbe07a942c8669e56d6:tryhackme'  /usr/share/wordlists/rockyou.txt.gz 
@@ -406,7 +397,7 @@ Started: Sat Apr 11 14:02:36 2026
 Stopped: Sat Apr 11 14:02:50 2026
 ```
 
-Obtive a última senha, <PASS_2-4>.
+Found the password, <PASS_2-4>.
 
 
 [^hashid]: https://psypanda.github.io/hashID/
