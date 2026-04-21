@@ -44,7 +44,7 @@ The command I'll use with `hashcat` uses the rockme[^rockme] wordlist:
 
 ### Hash 1-1
 
-Given hash: ``
+Given hash: `48bb6e862e54f2a795ffc4e541caed4d`
 
 ```bash
 $ hashid 48bb6e862e54f2a795ffc4e541caed4d
