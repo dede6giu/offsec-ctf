@@ -6,7 +6,16 @@ Solved at: `2026/04/20`
 
 # Table of Contents
 
-...
+- [OffSec - HASH](#offsec---hash)
+- [Table of Contents](#table-of-contents)
+- [Writeup](#writeup)
+   * [Summary](#summary)
+   * [Hash Cracking](#hash-cracking)
+      + [Hash 1](#hash-1)
+      + [Hash 2](#hash-2)
+      + [Hash 3](#hash-3)
+      + [Hash 4](#hash-4)
+      + [Hash 5](#hash-5)
 
 # Writeup
 
