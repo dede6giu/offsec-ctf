@@ -21,13 +21,16 @@ Solved in: `((solving date))`
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
+[^srchspl]: https://www.exploit-db.com/searchsploit
 [^wl-dirl23med]: https://gitlab.com/kalilinux/packages/dirbuster/-/blob/37f2e9bb1c50bee238aa50d795cf853bb28b2997/directory-list-2.3-medium.txt
-[^robotstxt]: https://en.wikipedia.org/wiki/Robots.txt
 [^nc]: https://nc110.sourceforge.io/
 [^rv]: https://en.wikipedia.org/wiki/Shell_shoveling
-[^hydra]: https://github.com/vanhauser-thc/thc-hydra
 [^hashid]: https://psypanda.github.io/hashID/
 [^hashcat]: https://hashcat.net/hashcat/
-[^rockme]: https://weakpass.com/wordlists/rockyou.txt
+[^rockyou]: https://weakpass.com/wordlists/rockyou.txt
+[^hydra]: https://github.com/vanhauser-thc/thc-hydra
+[^robotstxt]: https://en.wikipedia.org/wiki/Robots.txt
 [^gzip]: https://www.gzip.org/
 [^awk]: https://en.wikipedia.org/wiki/AWK
+[^py]: https://www.python.org/
+[^perl]: https://www.perl.org/
