@@ -1,6 +1,6 @@
 # [Simple CTF](https://tryhackme.com/room/easyctf)
 
-<a href="https://tryhackme.com/room/easyctf"><figure><img src="./assets/logo.png" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
+<a href="https://tryhackme.com/room/easyctf"><figure><img src="./assets/logo.png" width="400" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Beginner level ctf
 
