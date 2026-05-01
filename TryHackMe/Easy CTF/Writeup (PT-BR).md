@@ -3,7 +3,7 @@
 
 # [Simple CTF](https://tryhackme.com/room/easyctf)
 
-<a href="https://tryhackme.com/room/easyctf"><figure><img src="./assets/logo.png" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
+<a href="https://tryhackme.com/room/easyctf"><figure><img src="./assets/logo.png" width="300" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Beginner level ctf
 
@@ -45,7 +45,7 @@ PING ectf.net (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 162.716/185.450/207.903/18.448 ms
 ```
 
-Com isso, parte-se à próxima etapa: a busca por portas. Realizando uma busca simples com `nmap`[^nmap]:
+Com isso, parte-se à próxima etapa: a busca por portas. Realizando uma busca simples com `nmap`:[^nmap]
 
 ```bash
 $ nmap -p- -sV -sC -T4 -o nmap_scan ectf.net
