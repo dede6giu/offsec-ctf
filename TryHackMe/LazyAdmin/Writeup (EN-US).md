@@ -12,7 +12,13 @@ Solved in: `2026/04/25`
 
 # Table of Contents
 
-...
+- [LazyAdmin](#lazyadmin)
+- [Table of Contents](#table-of-contents)
+- [Writeup](#writeup)
+   * [Summary](#summary)
+   * [Reconnaissance](#reconnaissance)
+   * [Exploration](#exploration)
+   * [Privilege Escalation](#privilege-escalation)
 
 # Writeup
 
