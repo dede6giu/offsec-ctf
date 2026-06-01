@@ -1,32 +1,29 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Fowsniff CTF](https://tryhackme.com/room/ctf)
 
 <a href="https://tryhackme.com/room/ctf"><figure><img src="./assets/logo.jpeg" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Hack this machine and get the flag. There are lots of hints along the way and is perfect for beginners!
 
-Capture The Flag original disponível em [Try Hack Me](https://tryhackme.com/room/ctf), feito por [ben](https://tryhackme.com/p/ben).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/ctf), made by [ben](https://tryhackme.com/p/ben).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/05/29`
+Solved in: `2026/05/29`
 
-# Conteúdos
+# Table of Contents
 
 - [Fowsniff CTF](#fowsniff-ctf)
-- [Conteúdos](#conteúdos)
+- [Table of Contents](#table-of-contents)
 - [Writeup](#writeup)
-   * [Reconhecimento](#reconhecimento)
-   * [Exploração](#exploração)
+   * [Reconnaissance](#reconnaissance)
+   * [Exploration](#exploration)
    * [Escalação de privilégio](#escalação-de-privilégio)
 
 # Writeup
 
-## Reconhecimento
+## Reconnaissance
 
-Iniciando a máquina, adicionei ela ao DNS local `/etc/hosts` como `ctf.net` e testei a conexão com ping. Tudo certo, então segui para mapear o canal com `nmap`:[^nmap]
+Starting the machine, as I usually do, I added it to local DNS `/etc/hosts` as `ctf.net` and verified connection with ping. All works, so I moved on to `nmap`:[^nmap]
 
 ```bash
 $ nmap -T4 <MACHINE_IP>
@@ -43,9 +40,9 @@ PORT    STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 2.41 seconds
 ```
 
-Bem, tem um `http`, um `ssh`, e um sistema de emails com `pop3` e `imap`. No `http` temos apenas um aviso de vazamento de dados... Usualmente, para a solução desta máquina, seria necessário acessar o twitter marcado na página e eventualmente encontrar um pastebin. Contudo, o pastebin foi derrubado num falso positivo, e hoje em dia é extremamente difícil abrir o X sem uma conta (eu não tenho uma). Logo, segui usando o `.txt` fornecido pelo próprio autor, que encontrei após uma pesquisa online: [fowsniff.txt](https://github.com/berzerk0/Fowsniff/blob/main/fowsniff.txt).
+Well, there's a `http`, a `ssh`, and an email system with `pop3` and `imap`. Within the `http` we only really have a data breach warning... Usually, to solve this machine, one would need to access twitter with an username on the `http` and eventually get to a pastebin. However, doing so is now hard without an account on X (which I do not have) and even so, the original pastebin has been deleted as a false positive. So, doing a search online and gathering a `.txt` from the author himself: [fowsniff.txt](https://github.com/berzerk0/Fowsniff/blob/main/fowsniff.txt).
 
-Com ele, fica bem mais claro o que fazer. Temos 9 emails e 9 hashes! E de acordo com o próprio `fowsniff.txt`, estes hashes são `MD5`.
+With this it becomes clear what to do. Nine emails, nine hashes! And, by admission of the hacker themselves, these hashes are `MD5`.
 
 ```
 mauer@fowsniff:8a28a94a588a95b80163709ab4313aa4
@@ -63,13 +60,13 @@ sciana@fowsniff:f7fd98d380735e859f8b2ffbbede5a7e
 MD5 is insecure, so you shouldn't have trouble cracking them but I was too lazy haha =P
 ```
 
-Para quebrar os hashes usei `hashcat`[^hashcat] junto da wordlist de senhas rockyou[^rockyou], com o seguinte comando:
+To break these hashes I used `hashcat`[^hashcat] along the rockyou[^rockyou] wordlist, with the following command:
 
 ```bash
 $ hashcat -a 0 -m 0 'HASH' /usr/share/wordlists/rockyou.txt.gz
 ```
 
-De todos os 9 emails, apenas 1 não tinha uma senha presente no rockyou (foreshadowing). Ótimo!
+Of the nine emails, only **one** didn't have a password present within rockyou (foreshadowing). Great!
 
 ```
 mauer@fowsniff:<PASS0>
@@ -83,9 +80,9 @@ parede@fowsniff:<PASS6>
 sciana@fowsniff:<PASS7>
 ```
 
-## Exploração
+## Exploration
 
-Com isso segui para o email, e tentei cada combinação disponível, torcendo para que alguém não tenha ainda trocado sua senha...
+Following directly to email, I tried every available combination, hoping one wouldn't yet have changed passwords...
 
 ```bash
 $ telnet ctf.net 110
@@ -103,11 +100,12 @@ list
 2 1280
 ```
 
-Não só entrei em uma conta, mas tinha dois emails prontos para serem lidos! Opa...
+Not only did I found an account, but so too it had two emails!
 
-Email 1 (1622) é um aviso de A. J. Stone sobre o vazamento de informações e uma ordem para alterar as senhas, incluindo o fato que as senhas de todos eram inseguras. Realmente... 
+Email 1 (1622) is a warning from A. J. Stone about the data breach and an order to alter passwords, chiming in with the little detail the passwords were quite insecure. As so...
 
-Ele também fornece uma senha para o `ssh`, `<PASS_SSH>`, só que não funciona com o usuário `<USER_EM>`:
+
+He also provides a temporary password for `ssh`, `<PASS_SSH>`, but it doesn't work with the user `<USER_EM>`:
 
 ```bash
 $ ssh <USER_EM>@ctf.net
@@ -115,7 +113,7 @@ $ ssh <USER_EM>@ctf.net
 Permission denied, please try again.
 ```
 
-Mas obtive um outro nome no segundo email...
+But I got my lead on the second email...
 
 ```
 Devin,
@@ -132,7 +130,7 @@ Feel better,
 Skyler
 ```
 
-Ótimo! Temos um erro humano e uma grande possibilidade de acesso. Usando o email do Skyler, o acesso ao `ssh` acontece:
+Great! Using Skyler's email, I quickly get access to `ssh`:
 
 ```bash
 $ ssh <USER_SSH>@ctf.net
@@ -175,7 +173,7 @@ Last login: Tue Mar 13 16:55:40 2018 from <OTHER_IP0>
 Sorry, user <USER_SSH> may not run sudo on fowsniff.
 ```
 
-Droga! Bem, usando as dicas no Try Hack Me, ele diz para procurar arquivos que o usuário possa executar. Ou seja:
+Dammit! Oh well, using the Try Hack Me lines, they talk about searching for executables the user can access. That means:
 
 ```bash
 $ find / -group users -type f 2>/dev/null
@@ -183,9 +181,9 @@ $ find / -group users -type f 2>/dev/null
 ...
 ```
 
-Um script de shell? O primeiro resultado da busca, também! Ao olhar o script, é o banner que aparece ao entrar no `ssh`. É *altamente* provável que isso é executado com root, na inicialização do `ssh`.
+A shell script? The first result of the search, too! Looking deeper into it, it's the banner that appears when logging into `ssh`. It is *very* likely this is executed with root, on the `ssh` startup.
 
-Com o reverse shell[^rv] fornecido pelo próprio desafio, eu substitui o script para executar `python3`.[^py] Eu também coloquei o `netcat`[^nc] para ouvir na porta `1234` e finalmente realizei o login no ssh novamente:
+Using the reverse shell[^rv] the very challenge provides, I substituted the script to execute `python3`.[^py] I also put `netcat`[^nc] to listen on port `1234` and finally once more logged in on `ssh`:
 
 ```bash
 $ ssh <USER_SSH>@ctf.net
@@ -194,7 +192,7 @@ $ ssh <USER_SSH>@ctf.net
 root
 ```
 
-Incrível! Depois de olhar um pouco nos arquivos:
+Great! After a little more exploring...
 
 ```bash
 # cd /root
