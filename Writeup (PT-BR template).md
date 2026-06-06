@@ -25,6 +25,7 @@ Resolvido em: `((solving date))`
 [^nmap]: https://github.com/nmap/nmap
 [^gobuster]: https://github.com/OJ/gobuster
 [^wl-dirl23med]: https://gitlab.com/kalilinux/packages/dirbuster/-/blob/37f2e9bb1c50bee238aa50d795cf853bb28b2997/directory-list-2.3-medium.txt
+[^burp]: https://portswigger.net/burp
 [^srchspl]: https://www.exploit-db.com/searchsploit
 [^ms]: https://www.metasploit.com/
 [^nc]: https://nc110.sourceforge.io/
@@ -35,6 +36,8 @@ Resolvido em: `((solving date))`
 [^rockyou]: https://weakpass.com/wordlists/rockyou.txt
 [^hydra]: https://github.com/vanhauser-thc/thc-hydra
 [^ffuf]: https://github.com/ffuf/ffuf
+[^steg]: https://en.wikipedia.org/wiki/Steganography
+[^binwalk]: https://github.com/ReFirmLabs/binwalk
 [^robotstxt]: https://en.wikipedia.org/wiki/Robots.txt
 [^gzip]: https://www.gzip.org/
 [^awk]: https://en.wikipedia.org/wiki/AWK
