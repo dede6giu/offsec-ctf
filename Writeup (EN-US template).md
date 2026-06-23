@@ -40,3 +40,5 @@ Solved in: `((solving date))`
 [^awk]: https://en.wikipedia.org/wiki/AWK
 [^py]: https://www.python.org/
 [^perl]: https://www.perl.org/
+[^smb]: https://en.wikipedia.org/wiki/Server_Message_Block
+[^msfv]: https://github.com/SploitHQ/msfvenom
