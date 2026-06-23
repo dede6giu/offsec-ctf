@@ -211,7 +211,7 @@ Well, user flag, all right. Let's move on...
 alien_autospy.jpg  h.jpg  user_flag.txt
 ```
 
-<figure><img src="./assets/alien.png"></figure>
+<figure><img src="./assets/alien.jpg"></figure>
 
 Oh, it's that hoax. From eighty million years ago hahaha.
 - Q: What is the incident of the photo called? A: Roswell alien autopsy
